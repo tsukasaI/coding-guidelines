@@ -94,8 +94,7 @@ Use these terms consistently; do not introduce synonyms.
 
 - Introduce an abstraction (port, layer, generic parameter) only when there is
   a concrete second use or a genuine seam (I/O, external service). NEVER add
-  speculative indirection "for flexibility".
-- Duplication is cheaper than the wrong abstraction. Rule of thumb: extract
-  after the third occurrence, not the first.
+  speculative indirection "for flexibility" — the same rule the language
+  guides state as "no interfaces before use" and "traits only at genuine seams".
 - Code MUST be written for the reader: prefer boring, explicit code over
   clever constructs. Optimize only after measuring.
