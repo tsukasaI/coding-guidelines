@@ -31,7 +31,11 @@ Before writing or reviewing code, read:
 
 - ~/engineer/coding-guidelines/principles.md   (always)
 - ~/engineer/coding-guidelines/languages/typescript.md
+- ~/engineer/coding-guidelines/frontend/common.md
 - ~/engineer/coding-guidelines/frontend/react.md
+
+For DB, HTTP, or codegen work, additionally load the matching
+~/engineer/coding-guidelines/patterns/ file (persistence / http / codegen).
 
 Rules there are normative (MUST/SHOULD/NEVER). If a project-local rule in
 this file conflicts with the guidelines, this file wins — note the conflict

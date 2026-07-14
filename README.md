@@ -24,6 +24,9 @@ with a reference line.
 | Svelte UI | `principles.md`, `languages/typescript.md`, `frontend/common.md`, `frontend/svelte.md` |
 | Solid UI | `principles.md`, `languages/typescript.md`, `frontend/common.md`, `frontend/solid.md` |
 | Architecture / layout decisions | `principles.md` first, then the language file |
+| DB access / schema change | `principles.md`, the language file, `patterns/persistence.md` |
+| HTTP endpoint or API client | `principles.md`, the language file, `patterns/http.md` |
+| Setting up OpenAPI/SQL codegen | `patterns/codegen.md` + the language file |
 
 When several rows match, use the most specific one. Do not load all files at
 once; each language file is self-contained on top of `principles.md`. See
@@ -59,5 +62,8 @@ frontend/common.md       rules shared by all frontend guides
 frontend/react.md        React 19+ (Compiler assumed)
 frontend/svelte.md       Svelte 5 (runes)
 frontend/solid.md        Solid 1.9+ (2.0 beta not covered)
+patterns/persistence.md  DB access: repositories, transactions, migrations
+patterns/http.md         HTTP server & client patterns
+patterns/codegen.md      schema-first code generation (OpenAPI, SQL)
 templates/CLAUDE.md.example  how a project references this repo
 ```
