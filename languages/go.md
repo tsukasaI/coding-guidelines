@@ -83,9 +83,11 @@ Ref: go.dev/wiki/CodeReviewComments#interfaces; Google Go Style Guide (interface
 - Wrap boundary primitives in defined types: `type UserID string`,
   `type Cents int64`. Conversions are explicit, so mixed-up arguments become
   compile errors.
-- Enforce invariants in constructors that return `(T, error)`; keep the zero
-  value either valid or impossible to obtain outside the package (unexported
-  fields + constructor).
+- Enforce invariants in constructors that return `(T, error)`; unexported
+  fields keep other packages from forging values. The zero value stays
+  obtainable regardless (`var e Email`, zero-valued struct fields) — make it
+  valid, or treat zero as invalid and check for it where zeros can leak in
+  (decoding, forgotten field initialization).
 
 ```go
 // Good: parse once at the boundary, trust the type afterwards
@@ -102,6 +104,21 @@ func ParseEmail(raw string) (Email, error) {
 - Go has no sum types. Model closed variants with a small sealed interface
   (unexported method) and a type switch, or a defined constant type with
   `iota`. Do not simulate inheritance with struct embedding.
+
+```go
+// Good: sealed — only this package can add variants
+type OrderState interface{ orderState() }
+
+type Pending struct{}
+type Shipped struct{ At time.Time }
+
+func (Pending) orderState() {}
+func (Shipped) orderState() {}
+
+// Bad: exported marker method — any package can implement it,
+// so a type switch over the variants can never be exhaustive
+type OrderState interface{ OrderState() }
+```
 - Domain packages MUST NOT import `net/http`, `database/sql`, or any driver;
   adapters convert between wire/storage representations and domain types.
 
@@ -132,13 +149,20 @@ if err != nil {
     return err
 }
 
-// Good: wrap with context, translate the known case
-o, err := s.store.Order(ctx, id)
-if errors.Is(err, order.ErrNotFound) {
-    return nil, status.NotFound
+// Good — service: wrap with context, pass the error up
+func (s *Service) Get(ctx context.Context, id order.ID) (order.Order, error) {
+    o, err := s.store.Order(ctx, id)
+    if err != nil {
+        return order.Order{}, fmt.Errorf("get order %s: %w", id, err)
+    }
+    return o, nil
 }
-if err != nil {
-    return nil, fmt.Errorf("get order %s: %w", id, err)
+
+// Good — HTTP handler: translate the known domain error to the protocol
+o, err := svc.Get(r.Context(), id)
+if errors.Is(err, order.ErrNotFound) {
+    http.Error(w, "order not found", http.StatusNotFound)
+    return
 }
 ```
 

@@ -15,6 +15,10 @@ modules of functions and plain data, not class hierarchies.
   match source syntax 1:1).
 - Options removed in TS 7 (`baseUrl`, `target: es5`, `moduleResolution: node10`,
   namespaces-as-modules) MUST NOT appear in new configs.
+- TS 7.0 ships without a stable programmatic API (planned for 7.1). Projects
+  whose tooling consumes the TS API — Svelte/Vue/Astro/MDX integrations,
+  Angular template checking, webpack loaders, language-service plugins —
+  SHOULD stay on 6.x until 7.1.
 - `any` is banned in first-party code; use `unknown` and narrow. `as` casts
   need a comment justifying why narrowing is impossible.
 
@@ -95,7 +99,10 @@ function fee(p: Payment): number {
 ```ts
 type Brand<T, B extends string> = T & { readonly __brand: B };
 type UserId = Brand<string, "UserId">;
-type OrderId = Brand<string, "OrderId">;
+
+// The single sanctioned bare `as`: a brand has no runtime representation,
+// so the one constructor per brand is the only place a cast can live.
+const UserId = (s: string) => s as UserId;
 ```
 
 - Prefer unions over structs of mutually exclusive optionals; prefer
@@ -116,13 +123,17 @@ Ref: TS Handbook (narrowing, discriminated unions, `satisfies`).
   valibot 1) into a typed value. `JSON.parse(...) as Foo` is a lie, not a parse.
 - Derive static types from schemas (`z.infer`) so the runtime check and the
   type can't drift apart.
+- Parse with `safeParse` (or the valibot equivalent) and translate failures
+  into the boundary's error value, keeping expected failures as values. A
+  throwing `.parse` is reserved for startup config, where invalid input is a
+  deploy bug, not an expected failure.
 - Validate at the boundary only; internal functions trust their typed inputs
   (see principles.md "Parse, don't validate").
 
 ```ts
 // Good: schema is the single source of truth at the edge
 const OrderDraft = z.object({
-  userId: z.string().min(1).transform((s) => s as UserId),
+  userId: z.string().min(1).transform(UserId), // the brand constructor
   lines: z.array(Line).nonempty(),
 });
 type OrderDraft = z.infer<typeof OrderDraft>;
@@ -147,6 +158,8 @@ type CheckoutError =
   into a `Result`, or handle.
 - Translate at boundaries: adapters map driver/HTTP errors into the port's
   error union; the transport layer maps domain errors to status codes.
+
+Ref: typescriptlang.org/tsconfig (`useUnknownInCatchVariables`, part of `strict`).
 
 ## Testing
 

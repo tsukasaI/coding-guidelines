@@ -35,6 +35,8 @@ Ref: The Rust Book ch. 11.3 (test organization); Rust API Guidelines
   collections, or generics measurably hurt compile times / binary size.
 - Consumers own their trait: define `OrderRepo` next to the service that uses
   it, implement it in the adapter module/crate.
+- Async seams use `async fn` in traits. Async-fn traits are not
+  dyn-compatible without boxing — one more reason ports default to generics.
 
 ```rust
 // Good: trait at the seam, generic service, wired in main
@@ -43,13 +45,16 @@ trait OrderRepo {
     fn save(&self, order: &Order) -> Result<(), RepoError>;
 }
 
-struct CheckoutService<R: OrderRepo> { repo: R }
+pub struct CheckoutService<R: OrderRepo> { repo: R }
+
+impl<R: OrderRepo> CheckoutService<R> {
+    pub fn new(repo: R) -> Self { Self { repo } }
+}
 
 fn main() -> anyhow::Result<()> {
     let cfg = Config::from_env()?;              // parse env once, here
     let repo = PgOrderRepo::connect(&cfg.db)?;  // concrete
-    let svc = CheckoutService { repo };
-    run(svc)
+    run(CheckoutService::new(repo))             // fields stay private
 }
 ```
 
@@ -117,13 +122,23 @@ Ref: Rust API Guidelines C-NEWTYPE, C-VALIDATE, C-CTOR.
   Driver error types MUST NOT appear in port signatures.
 
 ```rust
-// Good: precise library error, contextual application edge
+// Good: the port's error names no driver type; the adapter converts
 #[derive(Debug, thiserror::Error)]
 pub enum RepoError {
     #[error("order not found")]
     NotFound,
     #[error("storage failure")]
-    Storage(#[from] sqlx::Error), // stays inside the adapter crate
+    Storage(#[source] Box<dyn std::error::Error + Send + Sync>),
+}
+
+// adapter module — the only place that names sqlx
+impl From<sqlx::Error> for RepoError {
+    fn from(e: sqlx::Error) -> Self {
+        match e {
+            sqlx::Error::RowNotFound => RepoError::NotFound,
+            e => RepoError::Storage(Box::new(e)),
+        }
+    }
 }
 
 // application edge
@@ -163,7 +178,7 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
    plain functions; one trait per genuine seam is the ceiling, not the floor.
 4. **One giant error enum** re-exported crate-wide so `?` always works:
    callers can no longer tell which failures are actually possible. Give each
-   seam its own small error type and convert with `#[from]` at boundaries.
+   seam its own small error type; adapters own the `From` impls that convert.
 5. **Stringly-typed everything**: `Result<T, String>`, `HashMap<String, Value>`
    passed through the domain, IDs as `String`. Parse into newtypes and enums
    at the boundary; strings stop at the edge.
