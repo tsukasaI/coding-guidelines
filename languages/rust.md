@@ -1,0 +1,169 @@
+# Rust
+
+Specializes `principles.md` for Rust. Baseline: current stable Rust, 2024
+edition (stabilized in 1.85). Design with ownership first: DDD patterns are
+adapted to the borrow checker, never translated from OO.
+
+## Project layout
+
+- One crate is the default. Split into a workspace only when crates have
+  genuinely independent consumers or compile-time pain demands it.
+- Binaries MUST stay thin: `main.rs` parses config/args, builds dependencies,
+  and calls into `lib.rs`. All logic lives in the library crate so integration
+  tests can reach it.
+- Organize modules by domain concept (`order`, `billing`), not by structural
+  role (`models`, `traits`, `utils`). A `utils` module is a naming failure.
+- Keep items private by default; export deliberately from the crate root.
+  Public structs SHOULD have private fields with constructors and accessors,
+  so invariants and future changes stay inside the module (C-STRUCT-PRIVATE).
+- Unit tests live in-file (`#[cfg(test)] mod tests`); integration tests in
+  `tests/`, which compiles each file as a separate crate against the public API.
+
+Ref: The Rust Book ch. 11.3 (test organization); Rust API Guidelines
+(future-proofing).
+
+## Composition and dependency injection
+
+- Wire everything in `main` (the composition root): construct concrete
+  adapters, pass them into constructors. No DI framework, no registry, no
+  `lazy_static`/`OnceLock` service singletons.
+- Ports are traits — defined ONLY at genuine seams: persistence, external
+  services, clock, randomness. Everything else depends on concrete types.
+- Prefer generics (`struct Service<R: OrderRepo>`) over `dyn Trait` for ports:
+  static dispatch, no allocation, inlining. Reach for `Box<dyn OrderRepo>`
+  only when you need runtime selection of implementations, heterogeneous
+  collections, or generics measurably hurt compile times / binary size.
+- Consumers own their trait: define `OrderRepo` next to the service that uses
+  it, implement it in the adapter module/crate.
+
+```rust
+// Good: trait at the seam, generic service, wired in main
+trait OrderRepo {
+    fn get(&self, id: OrderId) -> Result<Order, RepoError>;
+    fn save(&self, order: &Order) -> Result<(), RepoError>;
+}
+
+struct CheckoutService<R: OrderRepo> { repo: R }
+
+fn main() -> anyhow::Result<()> {
+    let cfg = Config::from_env()?;              // parse env once, here
+    let repo = PgOrderRepo::connect(&cfg.db)?;  // concrete
+    let svc = CheckoutService { repo };
+    run(svc)
+}
+```
+
+Ref: The Rust Book ch. 18.2 (trait objects vs generics trade-offs).
+
+## Domain modelling
+
+- Newtype every domain primitive: `struct OrderId(Uuid)`, `struct Cents(i64)`.
+  Mixing up arguments becomes a compile error (C-NEWTYPE).
+- Parse, don't validate: constructors return `Result<Self, Error>` and are the
+  only way to obtain the type. Prefer static enforcement (the type can't hold
+  an invalid value) over runtime checks scattered at call sites (C-VALIDATE).
+
+```rust
+// Bad: raw primitives, validity checked "somewhere"
+fn charge(user: String, amount: i64) { ... }
+
+// Good: invalid values cannot be constructed
+pub struct Email(String);
+impl Email {
+    pub fn parse(raw: &str) -> Result<Self, EmailError> {
+        raw.contains('@')
+            .then(|| Self(raw.to_owned()))
+            .ok_or(EmailError::MissingAt)
+    }
+}
+```
+
+- Make invalid states unrepresentable with enums, not flag fields. A struct of
+  mutually exclusive `Option`s is a sum type in denial.
+
+```rust
+// Bad: what does shipped_at + cancelled_at both Some mean?
+struct Order { shipped_at: Option<DateTime>, cancelled_at: Option<DateTime> }
+
+// Good: states are exclusive by construction
+enum OrderState { Pending, Shipped { at: DateTime }, Cancelled { at: DateTime } }
+```
+
+- Aggregates are owned data: the root struct owns its children (`Vec<Line>`),
+  and all mutation goes through `&mut self` methods that maintain invariants.
+  The borrow checker then enforces single-writer access for free. NEVER build
+  `Rc<RefCell<...>>` object graphs to imitate OO entity references — refer
+  across aggregates by ID instead.
+- Domain modules MUST NOT depend on driver/framework crates (`sqlx`, `axum`,
+  `serde` transport DTOs). Adapters map between wire/storage types and domain
+  types at the edge.
+
+Ref: Rust API Guidelines C-NEWTYPE, C-VALIDATE, C-CTOR.
+
+## Error handling
+
+- Expected failures return `Result`; propagate with `?`. Returning `Result` is
+  the default for any function that can fail ("To panic! or Not to panic!").
+- Library-style crates (domain, adapters, anything with callers that branch)
+  define dedicated error types with `thiserror`. Application edges (`main`,
+  handlers, CLI commands) MAY use `anyhow`, adding context per hop.
+- `panic!`/`unwrap`/`expect` are for bugs and broken invariants only. NEVER
+  unwrap on I/O, parsing, or any input-derived path. `expect("reason")` is
+  acceptable where the invariant is locally provable — say why in the message.
+- Keep error enums per module/seam, not one crate-wide mega-enum: a caller of
+  `Email::parse` should not have to match on `DatabaseUnavailable`.
+- Translate at boundaries: adapters map `sqlx::Error` into their own error
+  type (`RepoError::NotFound`); transport maps domain errors to status codes.
+  Driver error types MUST NOT appear in port signatures.
+
+```rust
+// Good: precise library error, contextual application edge
+#[derive(Debug, thiserror::Error)]
+pub enum RepoError {
+    #[error("order not found")]
+    NotFound,
+    #[error("storage failure")]
+    Storage(#[from] sqlx::Error), // stays inside the adapter crate
+}
+
+// application edge
+let order = repo
+    .get(id)
+    .with_context(|| format!("loading order {id}"))?;
+```
+
+Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
+"application" framing is the crates' own).
+
+## Testing
+
+- Test through the public API. Integration tests in `tests/` can only see
+  public items — treat that constraint as the design pressure it is. In-file
+  unit tests MAY touch private helpers, but if most tests need privates, the
+  module boundary is wrong.
+- Domain types and logic are pure: test them with plain asserts, no doubles.
+- Fake at trait seams only: an in-memory `OrderRepo` backed by `HashMap` for
+  service tests. NEVER introduce a trait just so a test can mock a concrete
+  collaborator.
+- Test error paths as first-class cases: `assert!(matches!(err, RepoError::NotFound))`.
+- Prefer plain `assert_eq!`/`matches!` over assertion-DSL crates; add
+  property-based tests (proptest) for parsers and invariant-heavy types.
+
+## Anti-patterns AI agents produce in Rust
+
+1. **`.clone()` to silence the borrow checker**: cloning at every error
+   instead of restructuring ownership (move the value, take `&`/`&mut`,
+   or return data instead of holding references). Treat a lifetime fight as
+   a design signal, not a clone site.
+2. **`unwrap()` on fallible paths**: compiles, then panics in production on
+   the first odd input. Every `unwrap` outside tests needs to be `?`, a
+   `match`, or an `expect` with a provable-invariant justification.
+3. **OO translation layers**: `Box<dyn Trait>` fields everywhere, getter/
+   setter impls, `Rc<RefCell<T>>` entity graphs. Rust rewards owned data and
+   plain functions; one trait per genuine seam is the ceiling, not the floor.
+4. **One giant error enum** re-exported crate-wide so `?` always works:
+   callers can no longer tell which failures are actually possible. Give each
+   seam its own small error type and convert with `#[from]` at boundaries.
+5. **Stringly-typed everything**: `Result<T, String>`, `HashMap<String, Value>`
+   passed through the domain, IDs as `String`. Parse into newtypes and enums
+   at the boundary; strings stop at the edge.
