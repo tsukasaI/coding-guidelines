@@ -1,8 +1,9 @@
 # Principles
 
-Language-agnostic rules that every guide in this repository specializes. When a
-language guide and this file appear to conflict, the language guide wins — it
-encodes the same principle under that language's constraints.
+Language-agnostic rules that every guide in this repository specializes.
+Precedence when guides appear to conflict: frontend guide > language guide >
+this file — the more specific guide encodes the same principle under tighter
+constraints.
 
 ## Terminology
 
@@ -29,6 +30,10 @@ Use these terms consistently; do not introduce synonyms.
   adapter that implements them. The consumer owns the contract.
 - Ports SHOULD be minimal: only the operations the consumer actually calls.
   A 20-method "repository interface" is an adapter's API leaking inward.
+- Atomicity is a port capability: express a transaction as one method on a
+  port, or as a `UnitOfWork` port owned by the application layer. Driver
+  transaction types MUST NOT appear in port signatures (details:
+  `patterns/persistence.md`).
 
 ## Composition root
 
@@ -40,6 +45,13 @@ Use these terms consistently; do not introduce synonyms.
   compile-time checked, and trivially swappable in tests.
 - Code outside the composition root MUST NOT know which concrete adapter it
   is using.
+- A UI framework's context/provider is NOT a service locator when it only
+  carries values constructed at the composition root down the tree (ports,
+  theme, current user). Providing at the root is explicit wiring; resolving
+  ad-hoc dependencies from context deep in the tree is still banned.
+- The logger is an ordinary injected dependency, built in the composition
+  root. A process-wide structured logger configured once at startup is the
+  single sanctioned exception to the global-state ban.
 - Configuration (env vars, flags, config files) MUST be read once, at the
   composition root, parsed into a typed config value, and passed down.
   NEVER read env vars from arbitrary depths of the codebase.
@@ -89,12 +101,15 @@ Use these terms consistently; do not introduce synonyms.
   transitions, not on which internal methods were called.
 - The domain, being pure, SHOULD be tested with plain unit tests and no test
   doubles at all. If domain tests need mocks, dependency direction is broken.
+- Tests MUST be independent: no ordering assumptions, no mutable state shared
+  between tests. Each test owns its fixtures.
 
 ## Simplicity
 
 - Introduce an abstraction (port, layer, generic parameter) only when there is
   a concrete second use or a genuine seam (I/O, external service). NEVER add
-  speculative indirection "for flexibility" — the same rule the language
-  guides state as "no interfaces before use" and "traits only at genuine seams".
+  speculative indirection for flexibility's sake — the rule Go restates for
+  interfaces (none before a consumer needs one) and Rust for traits (only at
+  genuine seams).
 - Code MUST be written for the reader: prefer boring, explicit code over
   clever constructs. Optimize only after measuring.

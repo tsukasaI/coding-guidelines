@@ -16,23 +16,24 @@ with a reference line.
 
 | Task | Load |
 |---|---|
-| Any code change | `principles.md` + the one language file |
+| Any backend/shared code change | `principles.md` + the language file for the task's language |
 | Go service | `principles.md`, `languages/go.md` |
 | Rust service/library | `principles.md`, `languages/rust.md` |
 | TypeScript backend/shared code | `principles.md`, `languages/typescript.md` |
-| React UI | `principles.md`, `languages/typescript.md`, `frontend/react.md` |
-| Svelte UI | `principles.md`, `languages/typescript.md`, `frontend/svelte.md` |
-| Solid UI | `principles.md`, `languages/typescript.md`, `frontend/solid.md` |
+| React UI | `principles.md`, `languages/typescript.md`, `frontend/common.md`, `frontend/react.md` |
+| Svelte UI | `principles.md`, `languages/typescript.md`, `frontend/common.md`, `frontend/svelte.md` |
+| Solid UI | `principles.md`, `languages/typescript.md`, `frontend/common.md`, `frontend/solid.md` |
 | Architecture / layout decisions | `principles.md` first, then the language file |
 
-Do not load all files at once; each language file is self-contained on top of
-`principles.md`. See `templates/CLAUDE.md.example` for how a project should
-reference this repo.
+When several rows match, use the most specific one. Do not load all files at
+once; each language file is self-contained on top of `principles.md`. See
+`templates/CLAUDE.md.example` for how a project should reference this repo.
 
-**Humans** — read `principles.md` end to end once; treat the language files as
-lookup references. Each file covers, in order: project layout, composition/DI,
-domain modelling, error handling, testing, and the anti-patterns AI agents most
-often produce in that language.
+**Humans** — read `principles.md` end to end once; treat the guide files as
+lookup references. Language files cover project layout, composition/DI, domain
+modelling, error handling, and testing; frontend files cover component
+boundaries, state management, data fetching, and context/global state. Every
+guide ends with the anti-patterns AI agents most often produce in that stack.
 
 ## Philosophy (10 lines)
 
@@ -54,8 +55,9 @@ principles.md            language-agnostic core (read first)
 languages/go.md          Go
 languages/rust.md        Rust (2024 edition)
 languages/typescript.md  TypeScript (strict, ESM)
-frontend/react.md        React
+frontend/common.md       rules shared by all frontend guides
+frontend/react.md        React 19+ (Compiler assumed)
 frontend/svelte.md       Svelte 5 (runes)
-frontend/solid.md        Solid
+frontend/solid.md        Solid 1.9+ (2.0 beta not covered)
 templates/CLAUDE.md.example  how a project references this repo
 ```
