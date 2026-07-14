@@ -1,0 +1,55 @@
+# Example: referencing coding-guidelines from a project
+
+Copy the relevant block into the project's `CLAUDE.md` (or `AGENTS.md`) and
+adjust the path. Two ways to reference the repo:
+
+- **Checkout / submodule** — clone this repo next to (or inside) the project
+  and point at files with `@` imports, so the content is loaded automatically.
+- **Path reference** — name the files and let the agent read them on demand.
+  Prefer this when you want to keep the always-on context small.
+
+---
+
+## Variant A: Go service, guidelines checked out as a sibling directory
+
+```markdown
+# Coding guidelines
+
+This project follows ../coding-guidelines. Load before writing code:
+
+@../coding-guidelines/principles.md
+@../coding-guidelines/languages/go.md
+```
+
+## Variant B: React + TypeScript app, loaded on demand
+
+```markdown
+# Coding guidelines
+
+This project follows the rules in ~/engineer/coding-guidelines.
+Before writing or reviewing code, read:
+
+- ~/engineer/coding-guidelines/principles.md   (always)
+- ~/engineer/coding-guidelines/languages/typescript.md
+- ~/engineer/coding-guidelines/frontend/react.md
+
+Rules there are normative (MUST/SHOULD/NEVER). If a project-local rule in
+this file conflicts with the guidelines, this file wins — note the conflict
+in your response.
+```
+
+## Variant C: git submodule pinned to a commit
+
+```bash
+git submodule add https://example.com/you/coding-guidelines docs/guidelines
+```
+
+```markdown
+# Coding guidelines
+
+@docs/guidelines/principles.md
+@docs/guidelines/languages/rust.md
+```
+
+Pin the submodule and bump it deliberately, so guideline changes arrive as
+reviewable diffs instead of silently changing agent behavior.
