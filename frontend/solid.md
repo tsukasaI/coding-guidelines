@@ -1,6 +1,7 @@
 # Solid
 
-Specializes `principles.md` and `languages/typescript.md` for Solid.
+Specializes `principles.md`, `languages/typescript.md`, and
+`frontend/common.md` for Solid.
 Baseline: solid-js 1.9+ (Solid 2.0 is still beta — do not target it),
 TypeScript strict.
 
@@ -13,12 +14,13 @@ them (JSX expressions, memos, effects) — not in re-executing function bodies.
 - Components are setup functions: wire signals, memos, and handlers, return
   JSX. Splitting components is for organization only — unlike React it has no
   performance meaning, so split by responsibility, never "to reduce renders".
-- Domain logic lives in plain TS modules per `languages/typescript.md`;
+- Domain logic lives in plain TS modules (see `frontend/common.md`);
   reusable reactive logic goes in custom primitives (`createCheckout()`),
   Solid's equivalent of custom hooks.
-- NEVER destructure or spread `props`: properties are reactive getters, and
-  destructuring reads them once, severing reactivity. Access `props.x` inside
-  the tracking scope that needs it.
+- NEVER destructure `props` or spread them into a plain object
+  (`const p = { ...props }`): both read the reactive getters once, severing
+  reactivity. Access `props.x` inside the tracking scope that needs it.
+  JSX spread (`<input {...rest} />`) is fine — the compiler keeps it reactive.
 - Defaults and splitting MUST go through `mergeProps` / `splitProps`, which
   preserve getter reactivity.
 
@@ -44,6 +46,10 @@ Ref: docs.solidjs.com/concepts/components/props.
 
 - `createSignal` for atomic values; `createStore` for nested/keyed state with
   fine-grained updates (`setState("todos", i, "done", true)`).
+- Store mutation through path setters is idiomatic, not a violation of the
+  TS guide's immutability rule: the store proxy IS the reactive store, and
+  path setters are how fine-grained updates propagate. Plain domain objects
+  outside signals/stores stay immutable.
 - Derive, don't sync — and in Solid, "derive" means *a function*:
 
 ```tsx
@@ -82,8 +88,8 @@ Ref: docs.solidjs.com/concepts/derived-values/memos, /concepts/effects.
 - NEVER fetch inside `createEffect` with hand-rolled loading/error signals —
   it races and bypasses Suspense (the docs position `createResource` as the
   correct alternative).
-- The fetcher calls the app's typed API port (schema-validated per
-  `languages/typescript.md`), never raw `fetch` + `as` in components.
+- The fetcher calls the app's typed API port per `frontend/common.md`, never
+  raw `fetch` + `as` in components.
 
 ```tsx
 const [order] = createResource(orderId, (id) => api.fetchOrder(id));
@@ -114,8 +120,8 @@ Ref: docs.solidjs.com/reference/basic-reactivity/create-resource.
 
 - Domain logic: plain TS unit tests, no Solid involved.
 - Custom primitives: test inside `createRoot` so ownership/disposal work.
-- Components: render and assert on accessible output (Testing Library);
-  fake the API port or network seam (MSW), not internal components.
+- Components: render and assert on accessible output; fake at the
+  port/network seam per `frontend/common.md`.
 
 ## Anti-patterns AI agents produce in Solid
 

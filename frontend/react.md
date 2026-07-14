@@ -1,8 +1,8 @@
 # React
 
-Specializes `principles.md` and `languages/typescript.md` for React.
-Baseline: React 19+, React Compiler enabled, TypeScript strict, function
-components only.
+Specializes `principles.md`, `languages/typescript.md`, and
+`frontend/common.md` for React. Baseline: React 19+, React Compiler enabled,
+TypeScript strict, function components only.
 
 ## Rules of React (non-negotiable)
 
@@ -23,8 +23,8 @@ Ref: react.dev/reference/rules.
   state used by one branch forces re-render of another.
 - Separate view from logic: extract non-trivial state machines and event logic
   into custom hooks (`useCheckout()`), keep components mostly markup. Domain
-  logic (pricing, validation) lives outside React entirely — plain TS modules
-  per `languages/typescript.md` — so it is testable without rendering.
+  logic lives outside React entirely (see `frontend/common.md`), so it is
+  testable without rendering.
 - Props are the component's public API: keep them minimal and typed; NEVER
   pass a grab-bag object "for flexibility". Prefer `children`/composition
   over boolean-prop configuration explosions.
@@ -59,12 +59,22 @@ const fullName = `${first} ${last}`;
   of state has exactly one owner.
 - To reset a subtree's state when identity changes, change its `key` — do not
   write effects that reset fields one by one.
+
+```tsx
+// Bad: effect resets fields one by one, one render late
+useEffect(() => { setDraft(""); setError(null); }, [userId]);
+
+// Good: a new key remounts the subtree with fresh state
+<ProfileForm key={userId} userId={userId} />
+```
 - Event logic belongs in event handlers, not effects. If code runs "because
   the user did X", it is a handler; effects are only for synchronizing with
   external systems (subscriptions, imperative widgets, analytics).
-- Assume the React Compiler: do NOT write `useMemo`/`useCallback`/`memo` in
-  new code unless profiling shows the compiler needs help; do not strip
-  existing memoization from old code without measuring.
+- Verify the React Compiler is actually enabled (babel/vite plugin or the
+  framework's flag) before applying this rule. With the compiler: do NOT
+  write `useMemo`/`useCallback`/`memo` in new code unless profiling shows the
+  compiler needs help. Without it: memoize what you have measured. Never
+  strip existing memoization without measuring.
 
 Ref: react.dev/learn/you-might-not-need-an-effect;
 react.dev/learn/choosing-the-state-structure; react.dev/blog (React Compiler 1.0).
@@ -79,8 +89,8 @@ react.dev/learn/choosing-the-state-structure; react.dev/blog (React Compiler 1.0
   (TanStack Query or SWR) for client-side caching, deduplication, and
   revalidation; (3) only in a tiny dependency-free app, one custom hook that
   centralizes cancellation and caching — never per-component effects.
-- Fetching code calls the app's API-client port (typed, schema-validated per
-  `languages/typescript.md`) — components never call `fetch` with raw URLs.
+- Fetching code calls the app's typed API port per `frontend/common.md` —
+  components never call `fetch` with raw URLs.
 - Mutations invalidate or update the relevant queries at the mutation site;
   do not sprinkle refetch calls through unrelated components.
 
@@ -114,6 +124,9 @@ Ref: react.dev/learn/passing-data-deeply-with-context ("Before you use context")
   crash degrades a panel, not the page. Event-handler and async errors are
   NOT caught by boundaries — handle them where they occur and set state.
 
+Ref: react.dev/reference/react/Component (error boundaries do not catch
+event-handler or async errors).
+
 ## Testing
 
 - Test components through their public API: render, interact, assert on the
@@ -121,9 +134,8 @@ Ref: react.dev/learn/passing-data-deeply-with-context ("Before you use context")
   internal state, hook order, or implementation details.
 - Domain logic extracted to plain TS is unit-tested without React; custom
   hooks with real logic get `renderHook` tests; components get behavior tests.
-- Fake at the port: stub the API client or query layer (e.g. MSW at the
-  network seam), not internal components. Snapshot tests only for genuinely
-  static markup.
+- Fake at the port/network seam per `frontend/common.md`; snapshot tests only
+  for genuinely static markup.
 
 ## Anti-patterns AI agents produce in React
 

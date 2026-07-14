@@ -1,6 +1,7 @@
 # Svelte
 
-Specializes `principles.md` and `languages/typescript.md` for Svelte.
+Specializes `principles.md`, `languages/typescript.md`, and
+`frontend/common.md` for Svelte.
 Baseline: Svelte 5 with runes (+ SvelteKit for apps), TypeScript strict.
 Svelte 4 syntax — `export let`, `$:` reactive statements, store-first state,
 slots — MUST NOT be written in new code; it appears below only as "do not use".
@@ -9,9 +10,9 @@ slots — MUST NOT be written in new code; it appears below only as "do not use"
 
 - One responsibility per component; split when unrelated concerns share a
   file or a `.svelte` file's `<script>` outgrows its markup.
-- Domain logic (pricing, validation, state machines) lives in plain TS
-  modules per `languages/typescript.md`; components bind UI to it. Reusable
-  reactive logic goes in `.svelte.ts` modules — runes work there too.
+- Domain logic lives in plain TS modules (see `frontend/common.md`);
+  components bind UI to it. Reusable reactive logic goes in `.svelte.ts`
+  modules — runes work there too.
 - Props are declared by destructuring `$props()` with defaults; type them
   explicitly. (Unlike Solid, destructuring props is the documented pattern.)
 
@@ -53,15 +54,35 @@ Ref: svelte.dev/docs/svelte/$props, /snippet, /$bindable.
 - `$effect` is an escape hatch for synchronizing with external systems (DOM
   measurement, third-party widgets, analytics). NEVER use it to update state
   from other state, and NEVER for logic that belongs in an event handler.
-- Shared client state: export `$state` from a `.svelte.ts` module and import
-  it where needed — this replaces most Svelte 4 stores. Stores remain valid
-  only for complex async streams or RxJS interop.
-- Cross-tree injection (current user, services) uses `setContext`/`getContext`
-  from a layout/root component — Svelte's composition-root conduit. Fast-
-  changing values don't belong there.
 
 Ref: svelte.dev/docs/svelte/$state, /$derived, /$effect ("When not to use
-$effect"), /stores.
+$effect").
+
+## Context and global state
+
+- Shared client state lives in `.svelte.ts` modules — this replaces most
+  Svelte 4 stores (stores remain valid only for complex async streams or
+  RxJS interop). State that is ever reassigned cannot be exported directly
+  (compile error `state_invalid_export`): export an object whose properties
+  you mutate, or export getter/setter functions.
+
+```ts
+// Bad: reassigned state cannot cross the module boundary
+export let user = $state<User | null>(null); // state_invalid_export
+
+// Good: export an object and mutate its properties
+export const session = $state({ user: null as User | null });
+```
+
+- Module-level reactive state is UI state, not a dependency. Services and
+  ports are injected with `setContext` from the layout/root component —
+  Svelte's composition-root conduit (sanctioned by principles.md).
+- Context is scoped per component tree; module state is shared process-wide.
+  On the server that means it leaks between requests — keep per-request data
+  in `load` results or context, never in module state.
+- Server data stays in `load` results — do not copy it into module state.
+
+Ref: svelte.dev/docs/svelte/stores; svelte.dev/docs/kit/state-management.
 
 ## Data fetching
 
@@ -71,7 +92,8 @@ $effect"), /stores.
 - Server-only concerns (secrets, DB access) MUST live in `+page.server.ts` /
   `$lib/server/` so they never reach the client bundle.
 - Mutations go through form actions (progressive enhancement via `use:enhance`)
-  or explicit API-port calls — components never `fetch` raw URLs.
+  or the typed API port per `frontend/common.md` — components never `fetch`
+  raw URLs.
 - NEVER fetch in `onMount`/`$effect` with hand-rolled loading flags when a
   `load` function can do it; for component-local async, prefer `{#await}`
   blocks over manual state triples.
@@ -80,9 +102,12 @@ Ref: svelte.dev/docs/kit/load; svelte.dev/docs/kit/form-actions.
 
 ## Error handling
 
-- Expected failures are values: `load` returns typed error info or throws
-  SvelteKit's `error(status)` to render the nearest `+error.svelte`; form
-  actions return `fail(status, data)` for the form to display.
+- Expected failures stay values inside app code. `load` and form actions are
+  the transport boundary, so `error(status)` (renders the nearest
+  `+error.svelte`) and `fail(status, data)` are the sanctioned translation of
+  an expected failure into the protocol — the same boundary translation a
+  handler does when mapping domain errors to status codes, not
+  exception-based control flow.
 - `+error.svelte` per route section bounds blast radius, like an error
   boundary. Component code must not swallow errors silently.
 
@@ -91,8 +116,8 @@ Ref: svelte.dev/docs/kit/load; svelte.dev/docs/kit/form-actions.
 - Domain logic in plain TS modules is unit-tested without Svelte.
 - Reactive logic in `.svelte.ts` gets its own tests; component tests render
   and assert on accessible output (Testing Library), not on internals.
-- Fake at ports/network seams (e.g. MSW, stubbed `load` inputs); `load`
-  functions are plain functions — test them by calling them with fake events.
+- Fake at the port/network seam per `frontend/common.md`; `load` functions
+  are plain functions — test them by calling them with fake events.
 
 ## Anti-patterns AI agents produce in Svelte
 
