@@ -1,0 +1,21 @@
+// Copy to `eslint.config.js` in a Solid project (requires `"type":
+// "module"` in package.json, or use the `.mjs` extension).
+// Per patterns/tooling.md: oxlint has no built-in Solid plugin yet — this
+// fills that one gap. Drop this file once oxlint ships native Solid
+// support.
+//
+// npm install -D eslint eslint-plugin-solid typescript-eslint typescript
+
+import solid from "eslint-plugin-solid/configs/typescript";
+import tseslint from "typescript-eslint";
+
+export default [
+  {
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+    ...solid,
+  },
+];

@@ -1,0 +1,18 @@
+# Paste into the project's `Cargo.toml`.
+# Per languages/rust.md's Tooling section: default clippy groups promoted
+# to deny, plus a small cherry-picked set of pedantic/nursery lints — NEVER
+# `clippy::pedantic = "warn"` or `clippy::nursery = "warn"` wholesale.
+
+[lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+style = { level = "deny", priority = -1 }
+
+unwrap_used = "warn"
+expect_used = "warn"
+missing_errors_doc = "warn"
+dbg_macro = "warn"
+todo = "warn"
+unimplemented = "warn"

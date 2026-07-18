@@ -1,0 +1,23 @@
+# Copy to `.gitleaks.toml` at the project root.
+# Per patterns/tooling.md: gitleaks is mandatory. Invoke as
+# `gitleaks git --staged --redact` in the pre-commit hook — NOT
+# `gitleaks detect`/`gitleaks protect`, deprecated since v8.19.0.
+
+[extend]
+# Keep the built-in rule set (AWS keys, GitHub tokens, private keys, etc.)
+# and add to it below, rather than replacing it.
+useDefault = true
+
+[[rules]]
+id = "internal-api-token"
+description = "Internal API token"
+regex = '''internal_api_token_[a-zA-Z0-9]{32}'''
+tags = ["key", "internal"]
+
+[allowlist]
+description = "Known non-secrets — test fixtures only, never a real leaked credential"
+paths = [
+  '''.*_test\.go$''',
+  '''.*\.test\.ts$''',
+  '''testdata/.*''',
+]

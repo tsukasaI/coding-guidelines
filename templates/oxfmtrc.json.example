@@ -1,0 +1,10 @@
+// Copy to `.oxfmtrc.json` at the project root.
+// This file is JSONC (comments allowed) despite the `.json` name — do NOT
+// validate it with `jq` (strict JSON only); use `oxfmt` itself.
+// `svelte: true` enables .svelte formatting (bundled prettier-plugin-svelte)
+// but requires installing the `svelte` package yourself — oxfmt does not
+// auto-install it. Without that package, oxfmt errors with
+// "Cannot find module 'svelte/compiler'" on any .svelte file.
+{
+  "svelte": true
+}

@@ -1,0 +1,4 @@
+# Copy to `rustfmt.toml` at the project root.
+# Per languages/rust.md's Tooling section: keep defaults, no overrides.
+# rustfmt exists to end style bikeshedding — a project-specific config
+# reintroduces exactly what it was meant to remove.

@@ -1,0 +1,25 @@
+// Copy to `.oxlintrc.json` at the project root.
+// This file is JSONC (comments allowed) despite the `.json` name — do NOT
+// validate it with `jq` (strict JSON only); use `oxlint` itself.
+// oxlint's config schema, oxfmt, and the type-aware lint path (tsgolint)
+// are all still maturing through 2026 — re-check this file against
+// oxc.rs on version bumps.
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react", "react-perf"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error",
+    "perf": "error",
+    "style": "warn"
+  },
+  "rules": {
+    // React 19+ automatic JSX runtime: no import needed, so this rule
+    // (aimed at the classic runtime) is a false positive here.
+    "react/react-in-jsx-scope": "off"
+  },
+  "env": {
+    "builtin": true
+  }
+}

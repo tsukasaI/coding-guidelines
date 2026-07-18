@@ -1,0 +1,35 @@
+# Copy to `lefthook.yml` at the project root, then run `lefthook install`.
+# Per patterns/tooling.md: lefthook is the mandated pre-commit orchestrator;
+# every job here is a zero-warnings gate (a warning fails the commit).
+#
+# The language-specific jobs below are glob-scoped and no-op harmlessly if
+# that language isn't present in the project — keep only the ones you need.
+
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      run: gitleaks git --staged --redact
+
+    go-format:
+      glob: "*.go"
+      run: gofumpt -l -w {staged_files}
+      stage_fixed: true
+    go-lint:
+      glob: "*.go"
+      run: golangci-lint run --config .golangci.yml {staged_files}
+
+    rust-format:
+      glob: "*.rs"
+      run: cargo fmt -- --check
+    rust-lint:
+      glob: "*.rs"
+      run: cargo clippy --all-targets -- -D warnings
+
+    ts-format:
+      # oxfmt covers .svelte too, given .oxfmtrc.json's `svelte: true`
+      glob: "*.{ts,tsx,svelte}"
+      run: npx oxfmt -c .oxfmtrc.json --check {staged_files}
+    ts-lint:
+      glob: "*.{ts,tsx}"
+      run: npx oxlint -c .oxlintrc.json {staged_files}

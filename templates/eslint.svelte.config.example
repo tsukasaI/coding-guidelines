@@ -1,0 +1,11 @@
+// Copy to `eslint.config.js` in a Svelte project (requires `"type":
+// "module"` in package.json, or use the `.mjs` extension).
+// Per patterns/tooling.md: oxlint doesn't lint `.svelte` template syntax
+// yet (script blocks only) — this fills that one gap. Drop this file once
+// oxc ships native `.svelte` support.
+//
+// npm install -D eslint eslint-plugin-svelte svelte
+
+import svelte from "eslint-plugin-svelte";
+
+export default [...svelte.configs["flat/recommended"]];

@@ -1,0 +1,43 @@
+# Copy to `deny.toml` at the project root.
+# Per languages/rust.md's Tooling section: cargo-deny covers
+# licenses/bans/advisories/sources. Generated as a starting point via
+# `cargo deny init`, then trimmed to an opinionated default — adjust the
+# `licenses.allow` list and `bans` entries for the project's actual
+# dependency tree.
+
+[graph]
+all-features = false
+no-default-features = false
+
+[advisories]
+ignore = []
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+]
+confidence-threshold = 0.8
+
+[licenses.private]
+ignore = false
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+allow = []
+deny = []
+skip = []
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

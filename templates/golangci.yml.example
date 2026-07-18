@@ -1,0 +1,25 @@
+# Copy to `.golangci.yml` at the project root.
+# Per languages/go.md's Tooling section: v2 schema, explicit enable list —
+# NOT `linters.default: all` with disables.
+
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - staticcheck
+    - govet
+    - errcheck
+    - ineffassign
+    - unused
+    - bodyclose
+    - noctx
+    - revive
+
+formatters:
+  enable:
+    - gofumpt
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
