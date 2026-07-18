@@ -27,6 +27,7 @@ with a reference line.
 | DB access / schema change | `principles.md`, the language file, `patterns/persistence.md` |
 | HTTP endpoint or API client | `principles.md`, the language file, `patterns/http.md` |
 | Setting up OpenAPI/SQL codegen | `patterns/codegen.md` + the language file |
+| Setting up or auditing lint/format/pre-commit tooling | `patterns/tooling.md` + the language file(s) |
 
 When several rows match, use the most specific one. Do not load all files at
 once; each language file is self-contained on top of `principles.md`. See
@@ -65,5 +66,6 @@ frontend/solid.md        Solid 1.9+ (2.0 beta not covered)
 patterns/persistence.md  DB access: repositories, transactions, migrations
 patterns/http.md         HTTP server & client patterns
 patterns/codegen.md      schema-first code generation (OpenAPI, SQL)
+patterns/tooling.md      lint/format tool choice, mandatory pre-commit + gitleaks
 templates/CLAUDE.md.example  how a project references this repo
 ```

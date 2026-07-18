@@ -35,7 +35,8 @@ Before writing or reviewing code, read:
 - ~/engineer/coding-guidelines/frontend/react.md
 
 For DB, HTTP, or codegen work, additionally load the matching
-~/engineer/coding-guidelines/patterns/ file (persistence / http / codegen).
+~/engineer/coding-guidelines/patterns/ file (persistence / http / codegen /
+tooling).
 
 Rules there are normative (MUST/SHOULD/NEVER). If a project-local rule in
 this file conflicts with the guidelines, this file wins — note the conflict
@@ -57,3 +58,10 @@ git submodule add https://example.com/you/coding-guidelines docs/guidelines
 
 Pin the submodule and bump it deliberately, so guideline changes arrive as
 reviewable diffs instead of silently changing agent behavior.
+
+## Bootstrapping tooling (any variant)
+
+Per `patterns/tooling.md`, lint/format/pre-commit is mandatory: copy
+`templates/lefthook.yml.example` → `lefthook.yml` and
+`templates/gitleaks.toml.example` → `.gitleaks.toml` at the project root,
+then run `lefthook install`.
