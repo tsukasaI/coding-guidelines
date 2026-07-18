@@ -1,0 +1,10 @@
+# This repo is markdown/config only today — no Go/Rust/TS source to lint —
+# so only the mandatory gitleaks job is wired up here. See
+# templates/lefthook.yml.example for the full per-language job set a
+# consuming project should add once it has source in that language.
+
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      run: gitleaks git --staged --redact
