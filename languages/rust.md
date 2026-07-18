@@ -164,6 +164,33 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
 - Prefer plain `assert_eq!`/`matches!` over assertion-DSL crates; add
   property-based tests (proptest) for parsers and invariant-heavy types.
 
+## Tooling
+
+- `rustfmt` runs at its default settings — no `rustfmt.toml` overrides.
+  Canonical formatting is the point; a project-specific style config just
+  reintroduces the bikeshedding rustfmt exists to end.
+- `clippy`'s default groups (`correctness`, `suspicious`, `complexity`,
+  `perf`, `style`) are promoted to deny (`-D warnings`) in the pre-commit
+  hook. Add a small, explicit, cherry-picked set of pedantic/nursery lints
+  via Cargo's `[lints.clippy]` table (stable since 1.74) —
+  `clippy::unwrap_used`, `clippy::expect_used` (outside `#[cfg(test)]`),
+  `clippy::missing_errors_doc`, `clippy::dbg_macro`, `clippy::todo`,
+  `clippy::unimplemented` are a reasonable starting set. This reinforces,
+  rather than restates, the `unwrap()` anti-pattern below — the lint makes
+  it a compile-time-visible warning instead of a code-review catch.
+- NEVER blanket-enable `clippy::pedantic` or `clippy::nursery` as whole
+  groups: both upstream docs and community practice warn against it —
+  `pedantic` has intentional false positives, `nursery` lints are
+  explicitly unstable/buggy. Cherry-pick individual lints instead.
+- `cargo-deny` (`deny.toml`: licenses, bans, advisories, sources) and
+  `cargo-audit` (RustSec advisories) cover supply-chain checks. Both are
+  slower than a local hook should be — they MAY run in CI only rather than
+  the mandatory pre-commit hook, unlike rustfmt/clippy which are
+  pre-commit-mandatory (see `patterns/tooling.md`).
+
+Ref: doc.rust-lang.org/clippy (lint groups, `[lints]` table); rustsec.org;
+github.com/EmbarkStudios/cargo-deny.
+
 ## Anti-patterns AI agents produce in Rust
 
 1. **`.clone()` to silence the borrow checker**: cloning at every error

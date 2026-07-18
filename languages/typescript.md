@@ -25,6 +25,31 @@ modules of functions and plain data, not class hierarchies.
 Ref: devblogs.microsoft.com/typescript (6.0 and 7.0 announcements);
 typescriptlang.org/tsconfig.
 
+## Tooling
+
+- `oxlint` + `oxfmt` are the default lint/format stack — Rust-based, with
+  native React and React Hooks rules (no gap for plain TS/React). Format
+  and lint both MUST fail the pre-commit hook on any warning, not only
+  errors (see `patterns/tooling.md`).
+- Type-aware linting runs through `tsgolint`, a separate Go binary built on
+  `typescript-go` (this baseline's own "Corsa" engine) rather than the old
+  tsc programmatic API. This is why it works with the TS7 baseline above
+  without needing the 6.x carve-out: unlike `typescript-eslint`, it isn't
+  one of the "tooling that consumes the TS API" cases. It covers 59/61 of
+  `typescript-eslint`'s type-aware rules; use `strict-type-checked` +
+  `stylistic-type-checked` as the reference severity bar for what "maximal
+  strictness" means here.
+- oxlint's ESLint-plugin compatibility layer (v9+ plugin API) is alpha —
+  existing ESLint plugins mostly work through it, but treat that as
+  unproven, not load-bearing.
+- Biome is a fallback only, for projects where the oxlint plugin layer
+  proves unstable — not a co-equal default. It has its own type-aware
+  inference but the same framework-coverage gaps as oxlint (see
+  `patterns/tooling.md` for the Svelte/Solid specifics).
+
+Ref: oxc.rs (oxlint, oxfmt, tsgolint docs); typescript-eslint.io
+(strict-type-checked, stylistic-type-checked); biomejs.dev.
+
 ## Project layout
 
 - Group by domain feature (`src/order/`, `src/billing/`), not by kind

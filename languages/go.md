@@ -209,6 +209,24 @@ func TestParseEmail(t *testing.T) {
 
 Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComments.
 
+## Tooling
+
+- `gofumpt` MUST replace `gofmt`: a strict superset (20+ extra rules) that
+  stays backwards-compatible — a `gofumpt`-formatted file always passes
+  plain `gofmt` too, so adopting it is a one-time no-churn switch.
+- `golangci-lint` v2 config MUST use `linters.default: none` with an
+  explicit `enable:` list (`staticcheck`, `govet`, `errcheck`,
+  `ineffassign`, `unused`, `bodyclose`, `noctx`, `revive` or `gocritic`) —
+  not `default: all` with disables. An explicit list is auditable; a
+  broad default with exclusions silently changes scope on every
+  golangci-lint upgrade. `gofumpt` is a *formatter* in v2 (`formatters.enable`),
+  not a linter — it cannot appear in `linters.enable`.
+- The pre-commit hook fails on any reported issue, not just ones above a
+  severity threshold — see "Maximal strictness stance" in
+  `patterns/tooling.md`.
+
+Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt.
+
 ## Anti-patterns AI agents produce in Go
 
 1. **Interface-first cargo cult**: an interface for every struct, defined
