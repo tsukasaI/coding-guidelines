@@ -6,6 +6,11 @@ Baseline: Svelte 5 with runes (+ SvelteKit for apps), TypeScript strict.
 Svelte 4 syntax — `export let`, `$:` reactive statements, store-first state,
 slots — MUST NOT be written in new code; it appears below only as "do not use".
 
+`oxlint` doesn't lint `.svelte` template syntax yet (it only covers
+`<script>` blocks) — keep `eslint-plugin-svelte` running until native
+support ships. Formatting is unaffected: `oxfmt` already handles `.svelte`
+files. See `patterns/tooling.md`.
+
 ## Component boundaries
 
 - One responsibility per component; split when unrelated concerns share a

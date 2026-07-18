@@ -9,6 +9,10 @@ The one mental model that prevents most bugs: **components run once**. There
 is no re-render. Reactivity lives in signals and the tracking scopes that read
 them (JSX expressions, memos, effects) — not in re-executing function bodies.
 
+`oxlint` has no built-in Solid plugin yet (open, unresolved upstream
+discussion) — keep `eslint-plugin-solid` running as a fallback. See
+`patterns/tooling.md`.
+
 ## Component boundaries
 
 - Components are setup functions: wire signals, memos, and handlers, return

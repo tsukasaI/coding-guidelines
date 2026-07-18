@@ -3,7 +3,8 @@
 Rules shared by every frontend guide. Load this file with any frontend task,
 together with `principles.md`, `languages/typescript.md`, and the framework
 guide. Where this file says "the framework's primitive", the framework guide
-names the concrete mechanism.
+names the concrete mechanism. For lint/format/pre-commit setup, see
+`languages/typescript.md`'s Tooling section and `patterns/tooling.md`.
 
 ## Domain logic
 
