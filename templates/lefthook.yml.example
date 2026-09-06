@@ -18,6 +18,11 @@ pre-commit:
     go-lint:
       glob: "*.go"
       run: golangci-lint run --config .golangci.yml {staged_files}
+    go-layout-ban:
+      # go.md "NEVER create a pkg/ directory" — depguard bans import paths,
+      # not directory names, so this is a plain glob-triggered shell job.
+      glob: "pkg/**"
+      run: echo "layout-ban: pkg/ is not part of the official Go layout (see languages/go.md 'Project layout'); use internal/ or a domain-named package" >&2 && exit 1
 
     rust-format:
       glob: "*.rs"
@@ -33,3 +38,8 @@ pre-commit:
     ts-lint:
       glob: "*.{ts,tsx}"
       run: npx oxlint -c .oxlintrc.json {staged_files}
+    ts-layout-ban:
+      # typescript.md "group by domain feature, not by kind" — no linter
+      # covers directory naming, so this is a plain glob-triggered shell job.
+      glob: "src/{types,interfaces,utils}/**"
+      run: echo "layout-ban: group by domain feature (src/order/, src/billing/), not by kind (see languages/typescript.md 'Project layout')" >&2 && exit 1

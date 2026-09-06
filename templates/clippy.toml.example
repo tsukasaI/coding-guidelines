@@ -1,0 +1,17 @@
+# Copy to `clippy.toml` at the project root.
+# Scopes the unwrap_used/expect_used/dbg_macro/print_stdout/print_stderr
+# denies in templates/cargo-lints.toml.example away from #[cfg(test)] code,
+# per languages/rust.md: "Every `unwrap` outside tests needs to be `?`..."
+#
+# Caveat (open upstream issue, rust-clippy#13981): these keys only cover
+# code under #[cfg(test)] in the same crate. They do NOT apply to
+# integration tests (tests/), examples/, or benches/, since that code
+# isn't cfg(test). unwrap()/expect()/dbg!/print! there still trigger the
+# deny; keep it that way, those aren't test-only code paths in the same
+# sense (see languages/rust.md "Testing": integration tests exercise the
+# public API like any other caller).
+
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-dbg-in-tests = true
+allow-print-in-tests = true

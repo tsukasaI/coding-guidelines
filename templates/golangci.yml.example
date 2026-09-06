@@ -7,7 +7,7 @@ version: "2"
 linters:
   default: none
   enable:
-    - staticcheck
+    - staticcheck   # v2 merged gosimple + stylecheck into this one linter
     - govet
     - errcheck
     - ineffassign
@@ -15,10 +15,65 @@ linters:
     - bodyclose
     - noctx
     - revive
+    - gochecknoglobals   # enforced: go.md "no package-level mutable state"
+    - gochecknoinits     # enforced: go.md "no init() wiring"
+    - depguard           # enforced: go.md "domain packages MUST NOT import net/http/database/sql"
+    - errorlint           # enforced: go.md "wrap with %w"
+    - errname              # enforced: go.md sentinel error naming
+    - containedctx         # enforced: go.md "NEVER store a context in a struct field"
+    - testpackage           # enforced: go.md external test package
+    - thelper                # enforced: go.md "mark helpers with t.Helper()"
+    - paralleltest             # partial: flags missing t.Parallel(), does not
+                                 # detect shared mutable state between tests
+    - tparallel
+    - nolintlint                 # enforced: security.md suppression audit trail
+
+  settings:
+    staticcheck:
+      checks: ["all"]   # v2 does NOT default to "all" — must be explicit
+
+    govet:
+      enable:
+        - shadow   # known false-positive-prone on common err-handling
+                   # patterns (upstream golangci-lint#1008) — suppress
+                   # individual false positives with a `//nolint:govet`
+                   # + reason (nolintlint enforces the reason), don't disable
+
+    errcheck:
+      # check-blank stays default (false): an explicit `_ = f()` with a
+      # comment remains legal per go.md's error-handling section.
+      exclude-functions:
+        - (*testing.T).Cleanup
+
+    depguard:
+      rules:
+        domain-no-io:
+          files:
+            - "!**/adapter/**"
+            - "!**/*_test.go"
+          deny:
+            - pkg: net/http
+              desc: "domain packages MUST NOT import net/http — see go.md 'Domain modelling'"
+            - pkg: database/sql
+              desc: "domain packages MUST NOT import database/sql — see go.md 'Domain modelling'"
+      # depguard bans import paths, not directory names — it cannot enforce
+      # the `pkg/` directory ban below; that's the lefthook layout-ban job.
+
+    revive:
+      rules:
+        - name: context-as-argument   # enforced: go.md "context.Context MUST be first parameter"
+        - name: error-strings         # enforced: go.md "error strings MUST be lower-case and unpunctuated"
+        - name: var-naming            # enforced: go.md "NEVER stutter"
+        - name: unhandled-error
+        - name: exported
 
 formatters:
   enable:
     - gofumpt
+  settings:
+    gofumpt:
+      extra-rules: true   # group-params, clothe-returns, balance-calls —
+                           # beyond gofumpt's default rule set
 
 issues:
   max-issues-per-linter: 0
