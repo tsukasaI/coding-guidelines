@@ -28,19 +28,22 @@
     "typescript/consistent-type-imports": "error",
 
     // enforced: typescript.md "no barrel files that re-export the world"
-    // native oxc rule, no compat-layer plugin needed. Threshold is module
-    // count (default 100); a genuine large index module may need tuning
-    // via the rule's `type` option rather than a blanket disable.
+    // native oxc rule, no compat-layer plugin needed. A genuine large index
+    // module may need tuning via the rule's `threshold` option (default
+    // 100 re-exported modules) rather than a blanket disable.
     "oxc/no-barrel-file": "error",
 
-    // enforced: typescript.md "deep imports into another feature's
-    // internals are forbidden" — adjust the pattern per project layout.
+    // enforced, partial: typescript.md "deep imports into another
+    // feature's internals are forbidden". This only catches imports that
+    // cross an `internal/` directory boundary at any depth; it has no
+    // notion of "feature" on its own, put non-public modules under
+    // `<feature>/internal/` for this to have something to match.
     "eslint/no-restricted-imports": [
       "error",
       {
         "patterns": [
           {
-            "group": ["*/src/*/internal/*", "*/*/internal/*"],
+            "group": ["**/internal/**"],
             "message": "deep import into another feature's internals; use its public surface"
           }
         ]

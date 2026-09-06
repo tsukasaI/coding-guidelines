@@ -37,18 +37,37 @@ linters:
         - shadow   # known false-positive-prone on common err-handling
                    # patterns (upstream golangci-lint#1008) — suppress
                    # individual false positives with a `//nolint:govet`
-                   # + reason (nolintlint enforces the reason), don't disable
+                   # + reason (nolintlint enforces the reason below), don't
+                   # disable the check
+
+    nolintlint:
+      # require-explanation defaults to false; without it, a bare
+      # `//nolint:errcheck` with no reason passes silently and the
+      # suppression-audit-trail claim below is false.
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
 
     errcheck:
       # check-blank stays default (false): an explicit `_ = f()` with a
       # comment remains legal per go.md's error-handling section.
-      exclude-functions:
-        - (*testing.T).Cleanup
+      # exclude-functions is for named error-returning functions the project
+      # never wants checked, e.g. a logger's own Log(err) call:
+      #   exclude-functions:
+      #     - (*log.Logger).Output
 
     depguard:
       rules:
         domain-no-io:
+          # This is a starting point, NOT a generic project-agnostic rule:
+          # depguard can only allowlist by path pattern, and go.md's own
+          # adapter packages are named after what they do (`postgres`,
+          # `api`), not a shared `adapter/` directory. Replace the excludes
+          # below with this project's actual adapter/transport/cmd package
+          # globs before relying on this rule; as shipped it will also flag
+          # go.md's own `postgres`/HTTP-handler examples.
           files:
+            - "!**/cmd/**"
             - "!**/adapter/**"
             - "!**/*_test.go"
           deny:
@@ -61,19 +80,41 @@ linters:
 
     revive:
       rules:
+        # revive's ~20 default rules, listed explicitly because setting
+        # `settings.revive.rules` at all replaces the defaults rather than
+        # adding to them.
+        - name: blank-imports
         - name: context-as-argument   # enforced: go.md "context.Context MUST be first parameter"
+        - name: context-keys-type
+        - name: dot-imports
+        - name: empty-block
+        - name: error-naming
+        - name: error-return
         - name: error-strings         # enforced: go.md "error strings MUST be lower-case and unpunctuated"
-        - name: var-naming            # enforced: go.md "NEVER stutter"
+        - name: exported              # enforced: go.md "NEVER stutter"
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: unused-parameter
+        - name: var-declaration
+        - name: var-naming
+        # Additions beyond the defaults:
         - name: unhandled-error
-        - name: exported
 
 formatters:
   enable:
     - gofumpt
   settings:
     gofumpt:
-      extra-rules: true   # group-params, clothe-returns, balance-calls —
-                           # beyond gofumpt's default rule set
+      extra-rules: true   # extra opinionated rules beyond gofumpt's
+                           # default set (`gofumpt -h` lists the current set)
 
 issues:
   max-issues-per-linter: 0

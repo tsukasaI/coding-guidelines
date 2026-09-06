@@ -126,8 +126,10 @@ type OrderState interface{ OrderState() }
 ```
 - Domain packages MUST NOT import `net/http`, `database/sql`, or any driver;
   adapters convert between wire/storage representations and domain types.
-  (enforced: `depguard`, scoped to non-adapter packages via the `files:`
-  glob in `templates/golangci.yml.example`)
+  (enforced: `depguard`; the `files:` glob in
+  `templates/golangci.yml.example` is a starting point that must be
+  customized to this project's real adapter/transport package names,
+  depguard scopes by path pattern, not by architectural role)
 
 ## Error handling
 
@@ -141,9 +143,10 @@ type OrderState interface{ OrderState() }
   (enforced: `revive.error-strings`)
 - Expected, branchable failures get sentinel errors (`var ErrNotFound =
   errors.New("not found")`) or dedicated error types; callers branch with
-  `errors.Is`/`errors.As`, NEVER by string matching. (enforced, naming only:
-  `errname`; the matching discipline itself has no linter, code review still
-  has to catch a stray `strings.Contains(err.Error(), ...)`)
+  `errors.Is`/`errors.As`, NEVER by string matching. (enforced, partial:
+  `errname` covers sentinel naming; `errorlint` (above) also flags `==`
+  comparisons and type assertions against wrapped errors. Neither catches a
+  stray `strings.Contains(err.Error(), ...)`, code review still has to.)
 - Translate at layer boundaries: adapters map driver errors (`sql.ErrNoRows`)
   to domain errors (`order.ErrNotFound`); transport maps domain errors to
   status codes. Driver errors MUST NOT escape the adapter.
@@ -184,12 +187,19 @@ handle errors); Google Go Style Guide (errors).
 
 - Test files live next to the code. Prefer the external test package
   (`package order_test`) so tests exercise only the exported API. Use the
-  internal package form only for genuinely unexported algorithms. (enforced:
+  internal package form only for genuinely unexported algorithms, named
+  `<name>_internal_test.go` so `testpackage` recognizes the exception (its
+  default `skip-regexp` matches `(export|internal)_test\.go`). (enforced:
   `testpackage`)
-- Use table-driven tests with subtests for input/output matrices:
+- Use table-driven tests with subtests for input/output matrices. Call
+  `t.Parallel()` in the outer test and in each subtest closure unless a test
+  genuinely can't run concurrently (say why in a comment). (enforced,
+  partial: `paralleltest`/`tparallel` flag a missing call, not whether
+  concurrency is actually safe)
 
 ```go
 func TestParseEmail(t *testing.T) {
+    t.Parallel()
     tests := []struct {
         name    string
         in      string
@@ -200,6 +210,7 @@ func TestParseEmail(t *testing.T) {
     }
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
+            t.Parallel()
             _, err := ParseEmail(tt.in)
             if gotErr := err != nil; gotErr != tt.wantErr {
                 t.Fatalf("ParseEmail(%q) error = %v, wantErr %v", tt.in, err, tt.wantErr)
@@ -212,8 +223,8 @@ func TestParseEmail(t *testing.T) {
 - Prefer fakes (in-memory `OrderStore` with real map-backed behavior) over
   expectation-based mocks; prefer real implementations over fakes when cheap
   (real `bytes.Buffer`, real filesystem via `t.TempDir()`).
-- Mark helpers with `t.Helper()`. Use `t.Cleanup` over deferred teardown in
-  helpers. Use `t.Context()` for test-scoped contexts. (enforced: `thelper`)
+- Mark helpers with `t.Helper()`. (enforced: `thelper`) Use `t.Cleanup` over
+  deferred teardown in helpers. Use `t.Context()` for test-scoped contexts.
 - On failure, report the input, got, and want (`got X, want Y`). Test failures
   are for humans debugging; make them self-explanatory.
 - NEVER make test order matter, and NEVER share mutable package-level state
@@ -238,7 +249,7 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
 - v2 merged `gosimple` and `stylecheck` into `staticcheck`; do not enable
   them separately. `staticcheck` does NOT default to its full check set,
   `settings.staticcheck.checks: ["all"]` must be explicit.
-- `govet.settings.enable: [shadow]` catches shadowed variables, but the
+- `linters.settings.govet.enable: [shadow]` catches shadowed variables, but the
   shadow analyzer is known to false-positive on common Go error-handling
   patterns (golangci-lint#1008). Keep it enabled anyway per the maximal-
   strictness stance; suppress individual false positives with
@@ -248,9 +259,11 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
   severity threshold, see "Maximal strictness stance" in
   `patterns/tooling.md`.
 - Suppressions (`//nolint:...`) MUST carry a reason
-  (`//nolint:errcheck // reason`); enforced by `nolintlint`. Ties to
-  `security.md`'s suppression audit-trail rule: an unreadable-reason
-  suppression cannot be reviewed or expired.
+  (`//nolint:errcheck // reason`); enforced by `nolintlint` with
+  `require-explanation: true` (the linter's default is `false`, enabling
+  `nolintlint` alone does not require a reason). Ties to `security.md`'s
+  suppression audit-trail rule: an unreadable-reason suppression cannot be
+  reviewed or expired.
 
 Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt;
 github.com/golangci/golangci-lint/issues/1008 (govet shadow false positives).

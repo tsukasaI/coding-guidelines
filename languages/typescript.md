@@ -53,7 +53,8 @@ typescriptlang.org/tsconfig.
 - `oxc/no-barrel-file` is a native oxlint rule (the `oxc` plugin, not the
   compat layer) and can enforce the no-barrel-file rule today; it's a
   module-count heuristic, not literal "re-exports everything" detection,
-  tune the rule's `type` option for a project's actual index-module size.
+  tune the rule's `threshold` option for a project's actual index-module
+  size.
   Import-cycle detection (`import/no-cycle`) still needs the `import`
   plugin, which stays on oxlint's alpha JS-plugin layer as of 2026.
 - `tsconfig.json` is itself a mechanical gate: `strict`,
@@ -73,8 +74,13 @@ biomejs.dev.
   (`src/types/`, `src/interfaces/`, `src/utils/`). Types live next to the
   functions that use them.
 - Each feature exposes a deliberate public surface via its top module; deep
-  imports into another feature's internals are forbidden. (enforced:
-  `eslint/no-restricted-imports`, pattern-scoped per project layout)
+  imports into another feature's internals are forbidden. (enforced,
+  partial: `eslint/no-restricted-imports` can only match a path pattern, it
+  has no concept of "a feature's internals" on its own. Put non-public
+  modules under an `internal/` subdirectory per feature
+  (`src/order/internal/*`) so the rule in
+  `templates/oxlintrc.json.example` has something literal to match; a
+  feature that doesn't follow that convention isn't covered.)
 - No barrel files that re-export the world; they create cycles and defeat
   tree-shaking. Export from the feature root only what other features need.
   (enforced: `oxc/no-barrel-file`, native, no compat-layer plugin needed;

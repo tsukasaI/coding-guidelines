@@ -173,8 +173,8 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   reintroduces the bikeshedding rustfmt exists to end.
 - `clippy`'s default groups (`correctness`, `suspicious`, `complexity`,
   `perf`, `style`) are promoted to deny (`-D warnings`) in the pre-commit
-  hook. Add a small, explicit, cherry-picked set of pedantic/nursery lints
-  via Cargo's `[lints.clippy]` table (stable since 1.74) —
+  hook. Add a small, explicit, cherry-picked set of pedantic/nursery/
+  restriction lints via Cargo's `[lints.clippy]` table (stable since 1.74) —
   `clippy::unwrap_used`, `clippy::expect_used` (outside `#[cfg(test)]`),
   `clippy::missing_errors_doc`, `clippy::dbg_macro`, `clippy::todo`,
   `clippy::unimplemented` are a reasonable starting set. This reinforces,
@@ -190,15 +190,17 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   the mandatory pre-commit hook, unlike rustfmt/clippy which are
   pre-commit-mandatory (see `patterns/tooling.md`).
 - The current cherry-pick set (`templates/cargo-lints.toml.example`) adds:
-  `module_name_repetitions` (package-name stutter, mirrors go.md's
-  `revive.var-naming`), `print_stdout`/`print_stderr` (production code
+  `module_name_repetitions` (module-name stutter, mirrors go.md's
+  `revive.exported`), `print_stdout`/`print_stderr` (production code
   logs, it doesn't print), `wildcard_imports`, `indexing_slicing`
   (`v[i]` panics on out-of-bounds; prefer `.get()`), and
   `allow_attributes`/`allow_attributes_without_reason` (forces
   `#[expect(lint, reason = "...")]` over a bare `#[allow(lint)]`, the same
   suppression-audit-trail requirement `security.md` states generally).
   `[lints.rust] unsafe_code = "forbid"` is also mandatory unless the
-  project has a documented, narrowly-scoped exception.
+  project has a documented, narrowly-scoped exception: `forbid` cannot be
+  locally overridden by `#[allow(unsafe_code)]` (that's the point), so a
+  real exception means downgrading the crate-wide lint to `deny` instead.
 - `redundant_clone` lives in the nursery group and has known false
   positive/negative reports upstream; it's still cherry-picked individually
   (not via a blanket `clippy::nursery`) because it directly targets the
@@ -207,10 +209,11 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
 - `unwrap_used`/`expect_used`/`dbg_macro`/`print_stdout`/`print_stderr`
   denies would also fire inside `#[cfg(test)]` code without
   `templates/clippy.toml.example`'s `allow-*-in-tests` keys. Those keys
-  only cover `#[cfg(test)]` in the same crate; integration tests (`tests/`),
-  `examples/`, and `benches/` are NOT covered (open upstream issue
-  rust-clippy#13981) and stay subject to the deny, same as any other caller
-  of the public API.
+  cover both in-crate `#[cfg(test)]` modules and `#[test]` functions in
+  `tests/`; a non-test helper function in `tests/`, plus anything in
+  `examples/` or `benches/`, is NOT covered (open upstream issue
+  rust-clippy#13981) and stays subject to the deny, same as any other
+  caller of the public API.
 - No clippy lint exists for the `Rc<RefCell<T>>`-object-graph or
   crate-wide-mega-error-enum anti-patterns below; both stay code-review-only.
 
