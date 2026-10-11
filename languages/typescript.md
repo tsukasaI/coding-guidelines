@@ -20,7 +20,9 @@ modules of functions and plain data, not class hierarchies.
   Angular template checking, webpack loaders, language-service plugins —
   SHOULD stay on 6.x until 7.1.
 - `any` is banned in first-party code; use `unknown` and narrow. `as` casts
-  need a comment justifying why narrowing is impossible.
+  need a comment justifying why narrowing is impossible. (enforced:
+  `typescript/no-explicit-any` in `templates/oxlintrc.json.example`; the
+  comment-on-`as` requirement has no linter, code review still catches it.)
 
 Ref: devblogs.microsoft.com/typescript (6.0 and 7.0 announcements);
 typescriptlang.org/tsconfig.
@@ -46,9 +48,25 @@ typescriptlang.org/tsconfig.
   proves unstable — not a co-equal default. It has its own type-aware
   inference but the same framework-coverage gaps as oxlint (see
   `patterns/tooling.md` for the Svelte/Solid specifics).
+- `categories.style` MUST be `error`, not `warn`, per the maximal-strictness
+  stance in `patterns/tooling.md`; there is no severity carve-out for style.
+- `oxc/no-barrel-file` is a native oxlint rule (the `oxc` plugin, not the
+  compat layer) and can enforce the no-barrel-file rule today; it's a
+  module-count heuristic, not literal "re-exports everything" detection,
+  tune the rule's `threshold` option for a project's actual index-module
+  size.
+  Import-cycle detection (`import/no-cycle`) still needs the `import`
+  plugin, which stays on oxlint's alpha JS-plugin layer as of 2026.
+- `tsconfig.json` is itself a mechanical gate: `strict`,
+  `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
+  `verbatimModuleSyntax`, and `noImplicitOverride` are enforced by the
+  compiler, not a linter (`templates/tsconfig.json.example`).
+- No oxlint rule enforces "dependencies are function parameters, no DI
+  container, no import-time side effects"; that stays code-review-only.
 
-Ref: oxc.rs (oxlint, oxfmt, tsgolint docs); typescript-eslint.io
-(strict-type-checked, stylistic-type-checked); biomejs.dev.
+Ref: oxc.rs (oxlint, oxfmt, tsgolint docs, no-barrel-file, JS Plugins
+Alpha); typescript-eslint.io (strict-type-checked, stylistic-type-checked);
+biomejs.dev.
 
 ## Project layout
 
@@ -56,9 +74,18 @@ Ref: oxc.rs (oxlint, oxfmt, tsgolint docs); typescript-eslint.io
   (`src/types/`, `src/interfaces/`, `src/utils/`). Types live next to the
   functions that use them.
 - Each feature exposes a deliberate public surface via its top module; deep
-  imports into another feature's internals are forbidden.
+  imports into another feature's internals are forbidden. (enforced,
+  partial: `eslint/no-restricted-imports` can only match a path pattern, it
+  has no concept of "a feature's internals" on its own. Put non-public
+  modules under an `internal/` subdirectory per feature
+  (`src/order/internal/*`) so the rule in
+  `templates/oxlintrc.json.example` has something literal to match; a
+  feature that doesn't follow that convention isn't covered.)
 - No barrel files that re-export the world; they create cycles and defeat
   tree-shaking. Export from the feature root only what other features need.
+  (enforced: `oxc/no-barrel-file`, native, no compat-layer plugin needed;
+  import-cycle detection itself needs `import/no-cycle` behind oxlint's
+  alpha JS-plugin layer, see Tooling below)
 
 ## Composition and dependency injection
 
@@ -99,6 +126,8 @@ const checkout = makeCheckout({ repo, clock: () => new Date() });
 
 - Model closed variants as discriminated unions and switch on the tag; get
   exhaustiveness by assigning the leftover to `never` in the default branch.
+  (enforced: `typescript/switch-exhaustiveness-check`, type-aware, catches a
+  missing case even before the `never` assignment would)
 
 ```ts
 type Payment =
@@ -181,6 +210,9 @@ type CheckoutError =
 - `catch (e)` binds `unknown` under strict settings — narrow before use;
   NEVER access `e.message` unchecked, and never swallow: rethrow, translate
   into a `Result`, or handle.
+- An `async` call MUST be awaited, returned, or explicitly discarded (`void
+  fireAndForget()`); a bare unawaited call silently drops its rejection.
+  (enforced: `typescript/no-floating-promises`, type-aware)
 - Translate at boundaries: adapters map driver/HTTP errors into the port's
   error union; the transport layer maps domain errors to status codes.
 

@@ -18,6 +18,15 @@ pre-commit:
     go-lint:
       glob: "*.go"
       run: golangci-lint run --config .golangci.yml {staged_files}
+    go-layout-ban:
+      # go.md "NEVER create a pkg/ directory" — depguard bans import paths,
+      # not directory names, so this is a plain glob-triggered shell job.
+      # Also catches a nested pkg/ (internal/pkg/, cmd/pkg/), not just root.
+      glob: "{pkg,**/pkg}/**"
+      run: >
+        echo "layout-ban: pkg/ is not part of the official Go layout (see
+        languages/go.md Project layout); use internal/ or a domain-named
+        package" >&2 && exit 1
 
     rust-format:
       glob: "*.rs"
@@ -32,4 +41,14 @@ pre-commit:
       run: npx oxfmt -c .oxfmtrc.json --check {staged_files}
     ts-lint:
       glob: "*.{ts,tsx}"
-      run: npx oxlint -c .oxlintrc.json {staged_files}
+      # --type-aware is required for no-floating-promises and
+      # switch-exhaustiveness-check (needs the oxlint-tsgolint devDependency)
+      run: npx oxlint --type-aware -c .oxlintrc.json {staged_files}
+    ts-layout-ban:
+      # typescript.md "group by domain feature, not by kind" — no linter
+      # covers directory naming, so this is a plain glob-triggered shell job.
+      # Also catches a nested src/ (monorepo packages/*/src/utils/, etc).
+      glob: "{src,**/src}/{types,interfaces,utils}/**"
+      run: >
+        echo "layout-ban: group by domain feature (src/order/, src/billing/),
+        not by kind (see languages/typescript.md Project layout)" >&2 && exit 1

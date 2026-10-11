@@ -11,11 +11,14 @@ Specializes `principles.md` for Go. Baseline: current stable Go, modules only.
 - Code that must not be imported by other modules goes in `internal/`. Default
   new packages to `internal/` and promote them deliberately.
 - NEVER create a `pkg/` directory. It is not part of the official layout and
-  adds a meaningless path segment.
+  adds a meaningless path segment. (enforced: lefthook layout-ban job on the
+  `pkg/**` glob; `depguard` bans import paths, not directory names, so it
+  cannot catch this. See `templates/lefthook.yml.example`.)
 - Package names MUST be short, lower-case, singular nouns (`order`, not
   `orders`, `orderutils`, `common`, `helpers`). Name packages after what they
   provide, not what they contain.
-- NEVER stutter: `order.Service`, not `order.OrderService`.
+- NEVER stutter: `order.Service`, not `order.OrderService`. (enforced:
+  `revive.var-naming`)
 
 Ref: go.dev/doc/modules/layout; Google Go Style Guide (package names).
 
@@ -31,9 +34,11 @@ Ref: go.dev/doc/modules/layout; Google Go Style Guide (package names).
 - NEVER use package-level mutable state (global `var db *sql.DB`, registries
   mutated in `init`). Pass dependencies explicitly. Why: globals create hidden
   coupling and order-dependent bugs, and make parallel tests impossible.
+  (enforced: `gochecknoglobals`, `gochecknoinits`)
 - `context.Context` MUST be the first parameter of any function that does I/O
   or can block: `func (s *Server) Get(ctx context.Context, id ID)`. NEVER
-  store a context in a struct field.
+  store a context in a struct field. (enforced: `revive.context-as-argument`,
+  `containedctx`)
 
 ```go
 // Bad: hidden global, wired nowhere
@@ -121,6 +126,10 @@ type OrderState interface{ OrderState() }
 ```
 - Domain packages MUST NOT import `net/http`, `database/sql`, or any driver;
   adapters convert between wire/storage representations and domain types.
+  (enforced: `depguard`; the `files:` glob in
+  `templates/golangci.yml.example` is a starting point that must be
+  customized to this project's real adapter/transport package names,
+  depguard scopes by path pattern, not by architectural role)
 
 ## Error handling
 
@@ -128,11 +137,16 @@ type OrderState interface{ OrderState() }
   and with a comment — explicitly discard with `_`. NEVER silently drop one.
 - Wrap with `%w` when adding context, so callers can use `errors.Is`/`errors.As`:
   `fmt.Errorf("load order %s: %w", id, err)`. Add context that the caller
-  doesn't already have; do not repeat the callee's words.
+  doesn't already have; do not repeat the callee's words. (enforced:
+  `errorlint`)
 - Error strings MUST be lower-case and unpunctuated (they get wrapped).
+  (enforced: `revive.error-strings`)
 - Expected, branchable failures get sentinel errors (`var ErrNotFound =
   errors.New("not found")`) or dedicated error types; callers branch with
-  `errors.Is`/`errors.As`, NEVER by string matching.
+  `errors.Is`/`errors.As`, NEVER by string matching. (enforced, partial:
+  `errname` covers sentinel naming; `errorlint` (above) also flags `==`
+  comparisons and type assertions against wrapped errors. Neither catches a
+  stray `strings.Contains(err.Error(), ...)`, code review still has to.)
 - Translate at layer boundaries: adapters map driver errors (`sql.ErrNoRows`)
   to domain errors (`order.ErrNotFound`); transport maps domain errors to
   status codes. Driver errors MUST NOT escape the adapter.
@@ -173,11 +187,19 @@ handle errors); Google Go Style Guide (errors).
 
 - Test files live next to the code. Prefer the external test package
   (`package order_test`) so tests exercise only the exported API. Use the
-  internal package form only for genuinely unexported algorithms.
-- Use table-driven tests with subtests for input/output matrices:
+  internal package form only for genuinely unexported algorithms, named
+  `<name>_internal_test.go` so `testpackage` recognizes the exception (its
+  default `skip-regexp` matches `(export|internal)_test\.go`). (enforced:
+  `testpackage`)
+- Use table-driven tests with subtests for input/output matrices. Call
+  `t.Parallel()` in the outer test and in each subtest closure unless a test
+  genuinely can't run concurrently (say why in a comment). (enforced,
+  partial: `paralleltest`/`tparallel` flag a missing call, not whether
+  concurrency is actually safe)
 
 ```go
 func TestParseEmail(t *testing.T) {
+    t.Parallel()
     tests := []struct {
         name    string
         in      string
@@ -188,6 +210,7 @@ func TestParseEmail(t *testing.T) {
     }
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
+            t.Parallel()
             _, err := ParseEmail(tt.in)
             if gotErr := err != nil; gotErr != tt.wantErr {
                 t.Fatalf("ParseEmail(%q) error = %v, wantErr %v", tt.in, err, tt.wantErr)
@@ -200,12 +223,14 @@ func TestParseEmail(t *testing.T) {
 - Prefer fakes (in-memory `OrderStore` with real map-backed behavior) over
   expectation-based mocks; prefer real implementations over fakes when cheap
   (real `bytes.Buffer`, real filesystem via `t.TempDir()`).
-- Mark helpers with `t.Helper()`. Use `t.Cleanup` over deferred teardown in
-  helpers. Use `t.Context()` for test-scoped contexts.
+- Mark helpers with `t.Helper()`. (enforced: `thelper`) Use `t.Cleanup` over
+  deferred teardown in helpers. Use `t.Context()` for test-scoped contexts.
 - On failure, report the input, got, and want (`got X, want Y`). Test failures
   are for humans debugging; make them self-explanatory.
 - NEVER make test order matter, and NEVER share mutable package-level state
-  between tests — that is the other reason globals are banned.
+  between tests — that is the other reason globals are banned. (enforced,
+  partial: `paralleltest` and `tparallel` catch missing `t.Parallel()`, not
+  the shared-state case itself; code review still has to catch that.)
 
 Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComments.
 
@@ -215,17 +240,33 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
   stays backwards-compatible — a `gofumpt`-formatted file always passes
   plain `gofmt` too, so adopting it is a one-time no-churn switch.
 - `golangci-lint` v2 config MUST use `linters.default: none` with an
-  explicit `enable:` list (`staticcheck`, `govet`, `errcheck`,
-  `ineffassign`, `unused`, `bodyclose`, `noctx`, `revive` or `gocritic`) —
-  not `default: all` with disables. An explicit list is auditable; a
-  broad default with exclusions silently changes scope on every
-  golangci-lint upgrade. `gofumpt` is a *formatter* in v2 (`formatters.enable`),
-  not a linter — it cannot appear in `linters.enable`.
+  explicit `enable:` list, not `default: all` with disables. An explicit
+  list is auditable; a broad default with exclusions silently changes scope
+  on every golangci-lint upgrade. `gofumpt` is a *formatter* in v2
+  (`formatters.enable`), not a linter, it cannot appear in `linters.enable`.
+  The full current list, including the architectural-rule linters below, is
+  `templates/golangci.yml.example`.
+- v2 merged `gosimple` and `stylecheck` into `staticcheck`; do not enable
+  them separately. `staticcheck` does NOT default to its full check set,
+  `settings.staticcheck.checks: ["all"]` must be explicit.
+- `linters.settings.govet.enable: [shadow]` catches shadowed variables, but the
+  shadow analyzer is known to false-positive on common Go error-handling
+  patterns (golangci-lint#1008). Keep it enabled anyway per the maximal-
+  strictness stance; suppress individual false positives with
+  `//nolint:govet` plus a reason (see `nolintlint` below), don't disable
+  the check.
 - The pre-commit hook fails on any reported issue, not just ones above a
-  severity threshold — see "Maximal strictness stance" in
+  severity threshold, see "Maximal strictness stance" in
   `patterns/tooling.md`.
+- Suppressions (`//nolint:...`) MUST carry a reason
+  (`//nolint:errcheck // reason`); enforced by `nolintlint` with
+  `require-explanation: true` (the linter's default is `false`, enabling
+  `nolintlint` alone does not require a reason). Ties to `security.md`'s
+  suppression audit-trail rule: an unreadable-reason suppression cannot be
+  reviewed or expired.
 
-Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt.
+Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt;
+github.com/golangci/golangci-lint/issues/1008 (govet shadow false positives).
 
 ## Anti-patterns AI agents produce in Go
 

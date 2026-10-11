@@ -1,0 +1,26 @@
+// Copy to `tsconfig.json` at the project root.
+// Per languages/typescript.md's Compiler baseline: TS 7 (native compiler),
+// ESM only, strict only.
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2025",
+
+    // Beyond `strict`, per languages/typescript.md.
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "noImplicitOverride": true,
+
+    // Removed in TS 7 — listed here as a reminder NOT to reintroduce them,
+    // not because they need to be set:
+    // baseUrl, target: "es5", moduleResolution: "node10"
+
+    // Skips type-checking .d.ts files (own build time vs. catching broken
+    // dependency typings); on for the common case, drop it if a project
+    // wants to catch third-party .d.ts errors instead.
+    "skipLibCheck": true
+  }
+}

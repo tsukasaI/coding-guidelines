@@ -115,6 +115,8 @@ Ref: Rust API Guidelines C-NEWTYPE, C-VALIDATE, C-CTOR.
 - `panic!`/`unwrap`/`expect` are for bugs and broken invariants only. NEVER
   unwrap on I/O, parsing, or any input-derived path. `expect("reason")` is
   acceptable where the invariant is locally provable — say why in the message.
+  (enforced: `clippy::unwrap_used`, `clippy::expect_used`, scoped away from
+  `#[cfg(test)]` code by `templates/clippy.toml.example`.)
 - Keep error enums per module/seam, not one crate-wide mega-enum: a caller of
   `Email::parse` should not have to match on `DatabaseUnavailable`.
 - Translate at boundaries: adapters map `sqlx::Error` into their own error
@@ -171,8 +173,8 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   reintroduces the bikeshedding rustfmt exists to end.
 - `clippy`'s default groups (`correctness`, `suspicious`, `complexity`,
   `perf`, `style`) are promoted to deny (`-D warnings`) in the pre-commit
-  hook. Add a small, explicit, cherry-picked set of pedantic/nursery lints
-  via Cargo's `[lints.clippy]` table (stable since 1.74) —
+  hook. Add a small, explicit, cherry-picked set of pedantic/nursery/
+  restriction lints via Cargo's `[lints.clippy]` table (stable since 1.74) —
   `clippy::unwrap_used`, `clippy::expect_used` (outside `#[cfg(test)]`),
   `clippy::missing_errors_doc`, `clippy::dbg_macro`, `clippy::todo`,
   `clippy::unimplemented` are a reasonable starting set. This reinforces,
@@ -187,9 +189,37 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   slower than a local hook should be — they MAY run in CI only rather than
   the mandatory pre-commit hook, unlike rustfmt/clippy which are
   pre-commit-mandatory (see `patterns/tooling.md`).
+- The current cherry-pick set (`templates/cargo-lints.toml.example`) adds:
+  `module_name_repetitions` (module-name stutter, mirrors go.md's
+  `revive.exported`), `print_stdout`/`print_stderr` (production code
+  logs, it doesn't print), `wildcard_imports`, `indexing_slicing`
+  (`v[i]` panics on out-of-bounds; prefer `.get()`), and
+  `allow_attributes`/`allow_attributes_without_reason` (forces
+  `#[expect(lint, reason = "...")]` over a bare `#[allow(lint)]`, the same
+  suppression-audit-trail requirement `security.md` states generally).
+  `[lints.rust] unsafe_code = "forbid"` is also mandatory unless the
+  project has a documented, narrowly-scoped exception: `forbid` cannot be
+  locally overridden by `#[allow(unsafe_code)]` (that's the point), so a
+  real exception means downgrading the crate-wide lint to `deny` instead.
+- `redundant_clone` lives in the nursery group and has known false
+  positive/negative reports upstream; it's still cherry-picked individually
+  (not via a blanket `clippy::nursery`) because it directly targets the
+  `.clone()`-to-silence-the-borrow-checker anti-pattern below, treat a hit
+  as a design signal to check, same as any nursery lint's noisier output.
+- `unwrap_used`/`expect_used`/`dbg_macro`/`print_stdout`/`print_stderr`
+  denies would also fire inside `#[cfg(test)]` code without
+  `templates/clippy.toml.example`'s `allow-*-in-tests` keys. Those keys
+  cover both in-crate `#[cfg(test)]` modules and `#[test]` functions in
+  `tests/`; a non-test helper function in `tests/`, plus anything in
+  `examples/` or `benches/`, is NOT covered (open upstream issue
+  rust-clippy#13981) and stays subject to the deny, same as any other
+  caller of the public API.
+- No clippy lint exists for the `Rc<RefCell<T>>`-object-graph or
+  crate-wide-mega-error-enum anti-patterns below; both stay code-review-only.
 
 Ref: doc.rust-lang.org/clippy (lint groups, `[lints]` table); rustsec.org;
-github.com/EmbarkStudios/cargo-deny.
+github.com/EmbarkStudios/cargo-deny; github.com/rust-lang/rust-clippy/issues/13981
+(clippy.toml test-scoping keys don't cover tests/examples/benches).
 
 ## Anti-patterns AI agents produce in Rust
 

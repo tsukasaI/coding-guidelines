@@ -64,4 +64,7 @@ reviewable diffs instead of silently changing agent behavior.
 Per `patterns/tooling.md`, lint/format/pre-commit is mandatory: copy
 `templates/lefthook.yml.example` → `lefthook.yml` and
 `templates/gitleaks.toml.example` → `.gitleaks.toml` at the project root,
-then run `lefthook install`.
+then run `lefthook install`. Also copy or paste (per each template's own
+header) the config template(s) for the project's stack:
+`golangci.yml.example`, `cargo-lints.toml.example` + `clippy.toml.example`,
+`oxlintrc.json.example` + `tsconfig.json.example`.

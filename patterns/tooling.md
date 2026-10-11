@@ -78,6 +78,23 @@ Solid, no react-hooks-equivalent rules), so it is positioned as the
 fallback if oxlint's plugin layer proves unstable for a project — not a
 co-equal default.
 
+## The `(enforced: ...)` convention
+
+- When a MUST/NEVER rule in a language file has an off-the-shelf
+  linter/formatter/compiler-flag equivalent, the rule keeps its prose (WHY,
+  Bad/Good examples) and gets a trailing `(enforced: tool/rule-name)`
+  pointer to the config that makes it mechanical. This lets an AI agent
+  reading a language file also know which violations a hook will actually
+  catch versus which still rely on code review.
+- Some rules are architectural judgment calls with no tool (dependency
+  direction, "consumer owns the port", DI-container bans). Those stay
+  prose-only; don't invent a fake enforcement tag for them.
+- A directory-naming ban (Go's `pkg/`, TypeScript's `src/utils/`-by-kind)
+  has no linter equivalent, existing linters check import paths and
+  identifiers, not directory names. Enforce these with a plain glob-scoped
+  lefthook job that always fails when a matching path is staged, see the
+  `*-layout-ban` jobs in `templates/lefthook.yml.example`.
+
 ## Maximal strictness stance
 
 - Every language's lint/format check is a zero-warnings gate in the

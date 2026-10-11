@@ -7,7 +7,7 @@ version: "2"
 linters:
   default: none
   enable:
-    - staticcheck
+    - staticcheck   # v2 merged gosimple + stylecheck into this one linter
     - govet
     - errcheck
     - ineffassign
@@ -15,10 +15,106 @@ linters:
     - bodyclose
     - noctx
     - revive
+    - gochecknoglobals   # enforced: go.md "no package-level mutable state"
+    - gochecknoinits     # enforced: go.md "no init() wiring"
+    - depguard           # enforced: go.md "domain packages MUST NOT import net/http/database/sql"
+    - errorlint           # enforced: go.md "wrap with %w"
+    - errname              # enforced: go.md sentinel error naming
+    - containedctx         # enforced: go.md "NEVER store a context in a struct field"
+    - testpackage           # enforced: go.md external test package
+    - thelper                # enforced: go.md "mark helpers with t.Helper()"
+    - paralleltest             # partial: flags missing t.Parallel(), does not
+                                 # detect shared mutable state between tests
+    - tparallel
+    - nolintlint                 # enforced: security.md suppression audit trail
+
+  settings:
+    staticcheck:
+      checks: ["all"]   # v2 does NOT default to "all" — must be explicit
+
+    govet:
+      enable:
+        - shadow   # known false-positive-prone on common err-handling
+                   # patterns (upstream golangci-lint#1008) — suppress
+                   # individual false positives with a `//nolint:govet`
+                   # + reason (nolintlint enforces the reason below), don't
+                   # disable the check
+
+    nolintlint:
+      # require-explanation defaults to false; without it, a bare
+      # `//nolint:errcheck` with no reason passes silently and the
+      # suppression-audit-trail claim below is false.
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
+
+    errcheck:
+      # check-blank stays default (false): an explicit `_ = f()` with a
+      # comment remains legal per go.md's error-handling section.
+      # exclude-functions is for named error-returning functions the project
+      # never wants checked, e.g. a logger's own Log(err) call:
+      #   exclude-functions:
+      #     - (*log.Logger).Output
+
+    depguard:
+      rules:
+        domain-no-io:
+          # This is a starting point, NOT a generic project-agnostic rule:
+          # depguard can only allowlist by path pattern, and go.md's own
+          # adapter packages are named after what they do (`postgres`,
+          # `api`), not a shared `adapter/` directory. Replace the excludes
+          # below with this project's actual adapter/transport/cmd package
+          # globs before relying on this rule; as shipped it will also flag
+          # go.md's own `postgres`/HTTP-handler examples.
+          files:
+            - "!**/cmd/**"
+            - "!**/adapter/**"
+            - "!**/*_test.go"
+          deny:
+            - pkg: net/http
+              desc: "domain packages MUST NOT import net/http — see go.md 'Domain modelling'"
+            - pkg: database/sql
+              desc: "domain packages MUST NOT import database/sql — see go.md 'Domain modelling'"
+      # depguard bans import paths, not directory names — it cannot enforce
+      # the `pkg/` directory ban below; that's the lefthook layout-ban job.
+
+    revive:
+      rules:
+        # revive's ~20 default rules, listed explicitly because setting
+        # `settings.revive.rules` at all replaces the defaults rather than
+        # adding to them.
+        - name: blank-imports
+        - name: context-as-argument   # enforced: go.md "context.Context MUST be first parameter"
+        - name: context-keys-type
+        - name: dot-imports
+        - name: empty-block
+        - name: error-naming
+        - name: error-return
+        - name: error-strings         # enforced: go.md "error strings MUST be lower-case and unpunctuated"
+        - name: exported              # enforced: go.md "NEVER stutter"
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: unused-parameter
+        - name: var-declaration
+        - name: var-naming
+        # Additions beyond the defaults:
+        - name: unhandled-error
 
 formatters:
   enable:
     - gofumpt
+  settings:
+    gofumpt:
+      extra-rules: true   # extra opinionated rules beyond gofumpt's
+                           # default set (`gofumpt -h` lists the current set)
 
 issues:
   max-issues-per-linter: 0
