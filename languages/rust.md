@@ -265,7 +265,12 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   `Iterator::for_each` (enforced: `clippy::needless_for_each`).
   Short reductions (`any`, `all`, `sum`, `map(..).collect()`) are fine.
 - Build strings with `format!`/`write!` when joining more than two pieces or
-  substituting values, not `+` (enforced: `clippy::string_add`).
+  substituting values, not `+`. The lint is stricter than this rule: it
+  flags any `String + &str`, so a single append uses `push_str` (enforced:
+  `clippy::string_add`).
+- When matching a foreign `#[non_exhaustive]` enum, list every variant you
+  know of; the required `_` arm then catches only variants added later. Use
+  `if let` when you care about one variant.
 - NEVER call `std::panic::catch_unwind` in first-party code (enforced:
   `clippy::disallowed_methods` via `templates/clippy.toml.example`). The
   only exception is defense in depth that correctness never relies on and
@@ -293,7 +298,7 @@ other Rust features).
 
 - Every public item gets a `///` doc comment; modules and crates get `//!`.
   Write Markdown with full sentences. Implementation notes use `//`.
-  (enforced: `rustc::missing_docs`.)
+  (enforced: `missing_docs`, rustc, in `[lints.rust]`.)
 - Document the failure contract: `# Errors` for every `Result`-returning
   public fn, `# Panics` for every one that can panic on bad input, `# Safety`
   for every `unsafe` one. (enforced: `clippy::missing_errors_doc`,
@@ -376,8 +381,8 @@ and how to write documentation).
   `borrowed_box`, `wrong_self_convention`, `len_without_is_empty`,
   `should_implement_trait`, `derivable_impls`, `unnecessary_unwrap`,
   `missing_safety_doc`.
-- `ref_option` and `fn_params_excessive_bools` skip exported functions
-  while clippy's `avoid-breaking-exported-api` is `true` (its default). A
+- `ref_option` skips exported functions while clippy's
+  `avoid-breaking-exported-api` is `true` (its default). A
   library crate whose public API is still unreleased can set it to `false`.
 - `exhaustive_enums`/`exhaustive_structs` (restriction) fire on every `pub`
   item, which over-reaches in an application crate. Enable them only in a
