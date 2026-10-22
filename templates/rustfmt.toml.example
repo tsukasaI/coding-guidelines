@@ -1,4 +1,12 @@
 # Copy to `rustfmt.toml` at the project root.
-# Per languages/rust.md's Tooling section: keep defaults, no overrides.
-# rustfmt exists to end style bikeshedding — a project-specific config
-# reintroduces exactly what it was meant to remove.
+# Per languages/rust.md's Tooling section: the Google Rust Style Guide's
+# settings and nothing else. max_width = 100 is rustfmt's default, so it
+# is not repeated here.
+
+# Stable since rustfmt 1.10.0; older rustfmt warns and ignores it.
+hex_literal_case = "Lower"
+
+# Nightly-only (rustfmt "Stable: No"). Uncomment only if the project
+# formats with nightly rustfmt; stable rustfmt warns on every run.
+# format_macro_matchers = true
+# imports_granularity = "Module"

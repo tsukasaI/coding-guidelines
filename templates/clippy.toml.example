@@ -15,3 +15,10 @@ allow-unwrap-in-tests = true
 allow-expect-in-tests = true
 allow-dbg-in-tests = true
 allow-print-in-tests = true
+
+# Per languages/rust.md "Implementation": no catch_unwind in first-party
+# code (Google Rust Style Guide). disallowed_methods is in the style group,
+# so this is a deny under cargo-lints.toml.example.
+disallowed-methods = [
+    { path = "std::panic::catch_unwind", reason = "panics are bugs; don't recover from them (languages/rust.md)" },
+]
