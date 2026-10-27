@@ -3,7 +3,9 @@
 # settings and nothing else. max_width = 100 is rustfmt's default, so it
 # is not repeated here.
 
-# Stable since rustfmt 1.10.0; older rustfmt warns and ignores it.
+# Upstream stabilizes this in rustfmt 1.10.0, but the rustfmt 1.10.0 bundled
+# with rustc 1.99.0 still rejects it as nightly-only and warns on every run.
+# Run `cargo fmt --check` once after copying; if it warns, don't add this file.
 hex_literal_case = "Lower"
 
 # Nightly-only (rustfmt "Stable: No"). Uncomment only if the project

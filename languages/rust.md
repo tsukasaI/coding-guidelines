@@ -331,8 +331,11 @@ and how to write documentation).
 - `rustfmt` runs with the Google Rust Style Guide's settings
   (`templates/rustfmt.toml.example`) and nothing else: `max_width = 100`
   (already rustfmt's default, so not written) and `hex_literal_case =
-  "Lower"` (stable since rustfmt 1.10.0; older toolchains warn and ignore
-  it). Google's other two, `format_macro_matchers = true` and
+  "Lower"`. Its upstream changelog stabilizes it in rustfmt 1.10.0, but the
+  rustfmt 1.10.0 bundled with rustc 1.99.0 still rejects it as nightly-only
+  and warns on every run, so the version number alone does not settle it:
+  run `cargo fmt --check` once and omit `rustfmt.toml` while the stable
+  toolchain warns. Google's other two, `format_macro_matchers = true` and
   `imports_granularity = "Module"`, are nightly-only and stay commented out:
   on stable rustfmt they print a warning on every run. Without them, the
   one-module-per-`use` rule above is code-review-only. Don't add project
