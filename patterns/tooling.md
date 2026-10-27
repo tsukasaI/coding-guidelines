@@ -55,7 +55,7 @@ Ref: github.com/gitleaks/gitleaks (CLI subcommands, config schema).
 | Language | Format | Lint | Extra |
 |---|---|---|---|
 | Go | gofumpt | golangci-lint v2 (explicit `linters.enable` list) + staticcheck | — |
-| Rust | rustfmt (defaults) | clippy (default groups → deny, cherry-picked pedantic/nursery via `[lints.clippy]`) | cargo-deny, cargo-audit |
+| Rust | rustfmt (Google Rust Style Guide settings) | clippy (default groups → deny, cherry-picked pedantic/nursery via `[lints.clippy]`) | cargo-deny, cargo-audit |
 | TypeScript / React | oxfmt | oxlint (native react/react-hooks) + tsgolint (type-aware) | Biome — fallback only |
 | Svelte | oxfmt (`.oxfmtrc.json`, `svelte: true` + install `svelte` pkg) | oxlint (script blocks only) + eslint-plugin-svelte (template-syntax gap) | |
 | Solid | oxfmt | oxlint + eslint-plugin-solid (no native oxlint plugin yet) | |
