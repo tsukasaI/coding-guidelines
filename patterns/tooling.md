@@ -130,6 +130,10 @@ co-equal default.
 2. **Blanket-enabling `clippy::pedantic`/`clippy::nursery`** (or an
    equivalent "turn everything on" lint group) instead of cherry-picking —
    floods the diff with unrelated warnings and buries the ones that matter.
+   Exception, by decision: the TypeScript template enables oxlint's
+   `pedantic`, `perf` and `style` categories as a whole
+   (`templates/oxlintrc.json.example`). A rule there that proves noisy is
+   turned off individually in that file with a reason; the category stays.
 3. **Allowlisting a real leaked secret** in `.gitleaks.toml` instead of
    rotating the credential. An allowlist entry is for known non-secrets,
    never for "this one is fine because it's already committed."

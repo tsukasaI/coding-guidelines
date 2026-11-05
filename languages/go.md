@@ -18,7 +18,7 @@ Specializes `principles.md` for Go. Baseline: current stable Go, modules only.
   `orders`, `orderutils`, `common`, `helpers`). Name packages after what they
   provide, not what they contain.
 - NEVER stutter: `order.Service`, not `order.OrderService`. (enforced:
-  `revive.var-naming`)
+  `revive.exported`)
 
 Ref: go.dev/doc/modules/layout; Google Go Style Guide (package names).
 
@@ -261,9 +261,8 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
 - Suppressions (`//nolint:...`) MUST carry a reason
   (`//nolint:errcheck // reason`); enforced by `nolintlint` with
   `require-explanation: true` (the linter's default is `false`, enabling
-  `nolintlint` alone does not require a reason). Ties to `security.md`'s
-  suppression audit-trail rule: an unreadable-reason suppression cannot be
-  reviewed or expired.
+  `nolintlint` alone does not require a reason). Why: a suppression
+  without a readable reason cannot be reviewed or expired.
 
 Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt;
 github.com/golangci/golangci-lint/issues/1008 (govet shadow false positives).

@@ -195,8 +195,8 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   logs, it doesn't print), `wildcard_imports`, `indexing_slicing`
   (`v[i]` panics on out-of-bounds; prefer `.get()`), and
   `allow_attributes`/`allow_attributes_without_reason` (forces
-  `#[expect(lint, reason = "...")]` over a bare `#[allow(lint)]`, the same
-  suppression-audit-trail requirement `security.md` states generally).
+  `#[expect(lint, reason = "...")]` over a bare `#[allow(lint)]`, so every
+  suppression carries a reason that can be reviewed or expired).
   `[lints.rust] unsafe_code = "forbid"` is also mandatory unless the
   project has a documented, narrowly-scoped exception: `forbid` cannot be
   locally overridden by `#[allow(unsafe_code)]` (that's the point), so a

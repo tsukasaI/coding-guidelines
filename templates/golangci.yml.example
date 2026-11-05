@@ -26,7 +26,7 @@ linters:
     - paralleltest             # partial: flags missing t.Parallel(), does not
                                  # detect shared mutable state between tests
     - tparallel
-    - nolintlint                 # enforced: security.md suppression audit trail
+    - nolintlint                 # enforced: go.md "suppressions MUST carry a reason"
 
   settings:
     staticcheck:

@@ -43,7 +43,8 @@ pre-commit:
       glob: "*.{ts,tsx}"
       # --type-aware is required for no-floating-promises and
       # switch-exhaustiveness-check (needs the oxlint-tsgolint devDependency)
-      run: npx oxlint --type-aware -c .oxlintrc.json {staged_files}
+      # --deny-warnings: a rule downgraded to "warn" must still fail the hook
+      run: npx oxlint --type-aware --deny-warnings -c .oxlintrc.json {staged_files}
     ts-layout-ban:
       # typescript.md "group by domain feature, not by kind" — no linter
       # covers directory naming, so this is a plain glob-triggered shell job.
