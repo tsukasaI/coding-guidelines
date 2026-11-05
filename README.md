@@ -66,6 +66,7 @@ frontend/solid.md        Solid 1.9+ (2.0 beta not covered)
 patterns/persistence.md  DB access: repositories, transactions, migrations
 patterns/http.md         HTTP server & client patterns
 patterns/codegen.md      schema-first code generation (OpenAPI, SQL)
-patterns/tooling.md      lint/format tool choice, mandatory pre-commit + gitleaks
+patterns/tooling.md      lint/format tool choice and status, mandatory pre-commit + gitleaks
 templates/CLAUDE.md.example  how a project references this repo
+scripts/check-enforced-tags.sh  checks (enforced: ...) tags name real template rules
 ```

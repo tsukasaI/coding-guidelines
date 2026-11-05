@@ -11,8 +11,8 @@ Specializes `principles.md` for Go. Baseline: current stable Go, modules only.
 - Code that must not be imported by other modules goes in `internal/`. Default
   new packages to `internal/` and promote them deliberately.
 - NEVER create a `pkg/` directory. It is not part of the official layout and
-  adds a meaningless path segment. (enforced: lefthook layout-ban job on the
-  `pkg/**` glob; `depguard` bans import paths, not directory names, so it
+  adds a meaningless path segment. (enforced: `go-layout-ban` lefthook job on
+  the `pkg/**` glob; `depguard` bans import paths, not directory names, so it
   cannot catch this. See `templates/lefthook.yml.example`.)
 - Package names MUST be short, lower-case, singular nouns (`order`, not
   `orders`, `orderutils`, `common`, `helpers`). Name packages after what they
