@@ -1,10 +1,12 @@
 // Copy to `eslint.config.js` in a Solid project (requires `"type":
 // "module"` in package.json, or use the `.mjs` extension).
-// Per patterns/tooling.md: oxlint has no built-in Solid plugin yet — this
-// fills that one gap. Drop this file once oxlint ships native Solid
-// support.
+// Why this file exists: oxlint has no Solid plugin yet (patterns/tooling.md
+// "Framework gaps"). Drop it once oxlint ships one.
+// typescript-eslint consumes the TS API, so a project using this file MUST
+// stay on TypeScript 6.x (patterns/tooling.md "TypeScript version vs.
+// TS-API tools"); pin `typescript` to ^6 below.
 //
-// npm install -D eslint eslint-plugin-solid typescript-eslint typescript
+// npm install -D eslint eslint-plugin-solid typescript-eslint typescript@6
 
 import solid from "eslint-plugin-solid/configs/typescript";
 import tseslint from "typescript-eslint";

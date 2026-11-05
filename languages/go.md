@@ -29,8 +29,9 @@ Ref: go.dev/doc/modules/layout; Google Go Style Guide (package names).
   `main` (or a `run(ctx, args)` it delegates to). No `init` wiring either.
 - Code-generated wiring (`google/wire`) MAY be considered only when the
   dependency graph is genuinely too large to wire by hand — and note that
-  google/wire itself was archived in August 2025 and is unmaintained. In
-  practice: restructure the graph before reaching for a tool.
+  google/wire itself is archived and unmaintained (`patterns/tooling.md`
+  "Tool status"). In practice: restructure the graph before reaching for a
+  tool.
 - NEVER use package-level mutable state (global `var db *sql.DB`, registries
   mutated in `init`). Pass dependencies explicitly. Why: globals create hidden
   coupling and order-dependent bugs, and make parallel tests impossible.

@@ -1,7 +1,7 @@
 # TypeScript
 
 Specializes `principles.md` for TypeScript. Baseline: TypeScript 7 (native
-compiler, GA July 2026), ESM only, strict only. Style: functional-first —
+compiler; status in `patterns/tooling.md` "Tool status"), ESM only, strict only. Style: functional-first —
 modules of functions and plain data, not class hierarchies.
 
 ## Compiler baseline
@@ -15,10 +15,13 @@ modules of functions and plain data, not class hierarchies.
   match source syntax 1:1).
 - Options removed in TS 7 (`baseUrl`, `target: es5`, `moduleResolution: node10`,
   namespaces-as-modules) MUST NOT appear in new configs.
-- TS 7.0 ships without a stable programmatic API (planned for 7.1). Projects
-  whose tooling consumes the TS API — Svelte/Vue/Astro/MDX integrations,
-  Angular template checking, webpack loaders, language-service plugins —
-  SHOULD stay on 6.x until 7.1.
+- Projects whose tooling consumes the TS programmatic API (`typescript-eslint`,
+  `svelte-check`, Vue/Astro/MDX integrations, Angular template checking,
+  webpack loaders, language-service plugins) SHOULD stay on 6.x until a
+  stable API ships. Concretely, Svelte and Solid projects (ESLint via
+  `templates/eslint.*.config.example`) MUST stay on 6.x; React and backend
+  projects, linted by oxlint + tsgolint, use TS 7. See `patterns/tooling.md`
+  "TypeScript version vs. TS-API tools".
 - `any` is banned in first-party code; use `unknown` and narrow. `as` casts
   need a comment justifying why narrowing is impossible. (enforced:
   `typescript/no-explicit-any` in `templates/oxlintrc.json.example`; the
@@ -33,21 +36,10 @@ typescriptlang.org/tsconfig.
   native React and React Hooks rules (no gap for plain TS/React). Format
   and lint both MUST fail the pre-commit hook on any warning, not only
   errors (see `patterns/tooling.md`).
-- Type-aware linting runs through `tsgolint`, a separate Go binary built on
-  `typescript-go` (this baseline's own "Corsa" engine) rather than the old
-  tsc programmatic API. This is why it works with the TS7 baseline above
-  without needing the 6.x carve-out: unlike `typescript-eslint`, it isn't
-  one of the "tooling that consumes the TS API" cases. It covers 59/61 of
-  `typescript-eslint`'s type-aware rules; use `strict-type-checked` +
-  `stylistic-type-checked` as the reference severity bar for what "maximal
-  strictness" means here.
-- oxlint's ESLint-plugin compatibility layer (v9+ plugin API) is alpha —
-  existing ESLint plugins mostly work through it, but treat that as
-  unproven, not load-bearing.
-- Biome is a fallback only, for projects where the oxlint plugin layer
-  proves unstable — not a co-equal default. It has its own type-aware
-  inference but the same framework-coverage gaps as oxlint (see
-  `patterns/tooling.md` for the Svelte/Solid specifics).
+- Type-aware linting runs through `tsgolint`, which works with the TS7
+  baseline without the 6.x carve-out. The oxlint-vs-`typescript-eslint`
+  rationale, the plugin-layer caveat, and Biome's fallback role are in
+  `patterns/tooling.md`; maturity facts are in its "Tool status" table.
 - `categories.style` MUST be `error`, not `warn`, per the maximal-strictness
   stance in `patterns/tooling.md`; there is no severity carve-out for style.
 - `oxc/no-barrel-file` is a native oxlint rule (the `oxc` plugin, not the
@@ -56,7 +48,8 @@ typescriptlang.org/tsconfig.
   tune the rule's `threshold` option for a project's actual index-module
   size.
   Import-cycle detection (`import/no-cycle`) still needs the `import`
-  plugin, which stays on oxlint's alpha JS-plugin layer as of 2026.
+  plugin, which stays on oxlint's JS-plugin layer (`patterns/tooling.md`
+  "Tool status").
 - `tsconfig.json` is itself a mechanical gate: `strict`,
   `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
   `verbatimModuleSyntax`, and `noImplicitOverride` are enforced by the
@@ -86,7 +79,7 @@ biomejs.dev.
   tree-shaking. Export from the feature root only what other features need.
   (enforced: `oxc/no-barrel-file`, native, no compat-layer plugin needed;
   import-cycle detection itself needs `import/no-cycle` behind oxlint's
-  alpha JS-plugin layer, see Tooling below)
+  JS-plugin layer, see Tooling below)
 
 ## Composition and dependency injection
 

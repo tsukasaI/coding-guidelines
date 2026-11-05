@@ -16,8 +16,9 @@ for the project's stack.
   every contributor's machine) without a recorded exception in the
   project's CLAUDE.md.
 - `git commit --no-verify` and hook-level `SKIP=` bypasses are banned except
-  as a documented emergency: the bypass and a follow-up ticket to fix the
-  underlying finding are recorded in the commit message.
+  as a documented emergency, and that exception is human-only: AI agents
+  NEVER use it. When a human invokes it, the bypass and a follow-up ticket
+  to fix the underlying finding are recorded in the commit message.
 - Every hook fails the commit on any warning, not only on errors — see
   "Maximal strictness stance" below.
 
@@ -36,17 +37,14 @@ Ref: lefthook.dev (parallel execution, monorepo configuration).
   the built-in rule set, plus project-specific custom `[[rules]]` and an
   `[allowlist]` for known non-secrets (test fixtures, documented example
   keys) — NEVER for a real leaked credential (rotate it instead).
-- Footnote, not a reason to switch today: gitleaks's core binary is
-  MIT-licensed OSS (only the separate `gitleaks-action` GitHub Action
-  wrapper changed to a source-available license in v2.0.0 — irrelevant
-  here since the binary is invoked directly, not the Action). In March
-  2026 its original creator announced he no longer has full control of
-  the gitleaks repo/brand and launched **Betterleaks** as a successor
-  (Aikido Security-sponsored, MIT-licensed, a verified drop-in
-  replacement — existing `.gitleaks.toml`, `.gitleaksignore`, and CLI
-  flags carry over unmodified). gitleaks itself is now described as
-  "stable, security-patches only." Revisit this footnote periodically;
-  the drop-in compatibility means switching later costs little.
+- Test paths are scanned like any other path: the template allowlists no
+  directories or file globs. A dummy value in a test is allowlisted by that
+  specific value (`regexes` / `stopwords`, see the commented example in
+  `templates/gitleaks.toml.example`), so a real credential pasted into a test
+  file is still caught.
+- Footnote, not a reason to switch today: gitleaks has a drop-in successor,
+  Betterleaks (see "Tool status"). Revisit periodically; drop-in
+  compatibility means switching later costs little.
 
 Ref: github.com/gitleaks/gitleaks (CLI subcommands, config schema).
 
@@ -56,7 +54,8 @@ Ref: github.com/gitleaks/gitleaks (CLI subcommands, config schema).
 |---|---|---|---|
 | Go | gofumpt | golangci-lint v2 (explicit `linters.enable` list) + staticcheck | — |
 | Rust | rustfmt (defaults) | clippy (default groups → deny, cherry-picked pedantic/nursery via `[lints.clippy]`) | cargo-deny, cargo-audit |
-| TypeScript / React | oxfmt | oxlint (native react/react-hooks) + tsgolint (type-aware) | Biome — fallback only |
+| TypeScript | oxfmt | oxlint (`templates/oxlintrc.json.example`) + tsgolint (type-aware) | Biome — fallback only |
+| React | oxfmt | as TypeScript, with native react/react-hooks rules (`templates/oxlintrc.react.json.example`) | |
 | Svelte | oxfmt (`.oxfmtrc.json`, `svelte: true` + install `svelte` pkg) | oxlint (script blocks only) + eslint-plugin-svelte (template-syntax gap) | |
 | Solid | oxfmt | oxlint + eslint-plugin-solid (no native oxlint plugin yet) | |
 
@@ -64,19 +63,42 @@ Why oxlint/oxfmt over `typescript-eslint`+Prettier or Biome: `tsgolint`
 (oxlint's type-aware engine) is a separate Go binary built on
 `typescript-go` — TS7's own "Corsa" engine, not the old tsc programmatic
 API — so it works natively with a TS7 baseline instead of forcing the 6.x
-carve-out `typescript-eslint` would need (see `languages/typescript.md`).
-It covers 59/61 of `typescript-eslint`'s type-aware rules; use
-`strict-type-checked` + `stylistic-type-checked` as the reference severity
-bar. oxlint's ESLint-plugin compatibility layer (v9+ plugin API) is alpha
-(March 2026) — existing plugins "should mostly work" through it, but treat
-that as unproven. `oxfmt` and the type-aware lint path are themselves still
-maturing through 2026 (Q3 2026 is oxc's target for full stabilization, with
-some reports of memory pressure on very large monorepos) — re-check status
-on version bumps, same as the config-schema caveat below. Biome has its own
-type-aware inference but the same framework-coverage gaps (Svelte beta, no
-Solid, no react-hooks-equivalent rules), so it is positioned as the
-fallback if oxlint's plugin layer proves unstable for a project — not a
-co-equal default.
+carve-out `typescript-eslint` would need (see "TypeScript version vs.
+TS-API tools" below). Use `strict-type-checked` + `stylistic-type-checked`
+as the reference severity bar for "maximal strictness". The oxlint
+ESLint-plugin compatibility layer is unproven: treat it as not
+load-bearing. Biome has its own type-aware inference but the same
+framework-coverage gaps as oxlint, so it is the fallback if oxlint's
+plugin layer proves unstable for a project — not a co-equal default.
+Maturity, coverage numbers, and dates are in "Tool status"; re-check them on
+version bumps, same as the config-schema caveat in the oxlint template.
+
+## Tool status (as of: per row)
+
+The single home for dated tool-status facts. Other files point here; update
+the row and its date when the fact changes.
+
+| Tool | Status | As of |
+|---|---|---|
+| gitleaks | Core binary is MIT OSS (only the `gitleaks-action` wrapper became source-available in v2.0.0, irrelevant when the binary is invoked directly). Original creator announced he no longer has full control of the repo/brand and launched **Betterleaks** as successor (Aikido Security-sponsored, MIT, verified drop-in: `.gitleaks.toml`, `.gitleaksignore`, CLI flags carry over unmodified). gitleaks itself is "stable, security-patches only." | 2026-03 |
+| gitleaks `detect`/`protect` | Deprecated (hidden from `--help`, still functional) in favor of `git`/`dir`/`stdin` | v8.19.0 |
+| oxlint JS-plugin layer (ESLint v9+ plugin API) | Alpha; existing plugins "should mostly work"; the `import` plugin (`import/no-cycle`) stays behind it | 2026-03 |
+| oxfmt, type-aware lint path | Still maturing; Q3 2026 is oxc's target for full stabilization; some reports of memory pressure on very large monorepos | 2026 (target Q3) |
+| tsgolint | Covers 59/61 of `typescript-eslint`'s type-aware rules | undated |
+| oxc `.svelte` template linting | Not shipped; full framework file-format support is on oxc's 2026 roadmap | 2026 |
+| oxlint Solid plugin | None; open, unresolved upstream discussion | undated |
+| TypeScript 7 | Native compiler, GA July 2026; 7.0 has no stable programmatic API (planned for 7.1) | 2026-07 |
+| Biome | Own type-aware inference, but Svelte support is beta, no Solid, no react-hooks-equivalent rules | undated |
+| google/wire | Archived, unmaintained | 2025-08 |
+
+### TypeScript version vs. TS-API tools
+
+Tools that consume the TypeScript programmatic API (`typescript-eslint`,
+`svelte-check`, Svelte/Vue/Astro/MDX integrations, language-service plugins)
+need TS 6.x until 7.1 ships a stable API. Svelte and Solid projects depend on
+that API through ESLint (`templates/eslint.*.config.example`) and therefore
+MUST stay on TS 6.x until then; React and backend TypeScript projects lint
+with oxlint + tsgolint and use TS 7.
 
 ## The `(enforced: ...)` convention
 
@@ -102,20 +124,32 @@ co-equal default.
   is the mandatory floor.
 - If a project also runs CI, CI SHOULD apply the same zero-warnings gate —
   but this repo does not mandate that a project have CI at all (a local
-  pre-commit hook is bypassable only by the documented emergency exception
-  above, and CI is a separate, not-required, backstop).
+  pre-commit hook is bypassable only by the documented human-only emergency
+  exception above, and CI is a separate, not-required, backstop).
+- Checks that are "CI only" in these guides (codegen drift check and spec
+  lint in `patterns/codegen.md`, `cargo deny` / `cargo audit` in
+  `languages/rust.md`) are too slow or tool-heavy for pre-commit, not
+  optional. A project without CI MUST run them from a lefthook `pre-push`
+  job instead (commented examples in `templates/lefthook.yml.example`).
+- Deliberate exceptions to the zero-warnings gate, both by decision:
+  - `gofumpt` auto-fixes (`-w` + `stage_fixed`) instead of failing: its
+    rewrite is deterministic and semantics-free, so auto-fixing loses
+    nothing and saves a round trip.
+  - `cargo-deny` `bans.multiple-versions = "warn"`
+    (`templates/deny.toml.example`): duplicate transitive versions are often
+    unfixable by the project itself, so they warn instead of blocking.
 - Concrete flag lists ("what maximal strictness means") live in each
   language file's own `## Tooling` section — not duplicated here.
 
 ## Framework gaps (Svelte / Solid)
 
 - **Lint**: oxlint has no template-syntax linting for `.svelte` files yet
-  (only `<script>` blocks are covered); full framework file-format support
-  is on oxc's 2026 roadmap but unshipped. Solid has no built-in oxlint
-  plugin (open, unresolved upstream discussion). Keep
-  `eslint-plugin-svelte` / `eslint-plugin-solid` running — via oxlint's
-  alpha JS-plugin layer, or as a plain ESLint fallback step — until native
-  support ships.
+  (only `<script>` blocks are covered), and Solid has no built-in oxlint
+  plugin (status: "Tool status"). Keep `eslint-plugin-svelte` /
+  `eslint-plugin-solid` running — via oxlint's JS-plugin layer, or as a
+  plain ESLint fallback step (`templates/eslint.*.config.example`) — until
+  native support ships. That ESLint step ties these projects to TS 6.x (see
+  "TypeScript version vs. TS-API tools").
 - **Format**: this is NOT a Svelte gap. `oxfmt` bundles
   `prettier-plugin-svelte` and formats `.svelte` files given `svelte: true`
   in `.oxfmtrc.json`; the only setup requirement is installing the
@@ -125,8 +159,9 @@ co-equal default.
 ## Anti-patterns AI agents produce around tooling
 
 1. **Reaching for `--no-verify`/`SKIP=`** the moment a hook fails, instead
-   of fixing the finding. The bypass exists for genuine emergencies with a
-   recorded follow-up, not for "the linter is being annoying."
+   of fixing the finding. The bypass is a human-only emergency exception
+   with a recorded follow-up; an agent never uses it, and "the linter is
+   being annoying" is not an emergency.
 2. **Blanket-enabling `clippy::pedantic`/`clippy::nursery`** (or an
    equivalent "turn everything on" lint group) instead of cherry-picking —
    floods the diff with unrelated warnings and buries the ones that matter.
