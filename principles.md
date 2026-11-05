@@ -103,6 +103,21 @@ Use these terms consistently; do not introduce synonyms.
   doubles at all. If domain tests need mocks, dependency direction is broken.
 - Tests MUST be independent: no ordering assumptions, no mutable state shared
   between tests. Each test owns its fixtures.
+- Each behavior MUST be tested once, through the highest public function
+  that exercises it. Re-testing the same input class at a lower layer, or
+  through a second entry point, is duplication: it adds runtime and makes
+  every spec change edit several tests without catching more regressions.
+- NEVER test code you don't own. Don't write tests for a library or platform
+  API (date/time APIs, HTTP clients, parsers); test your own function that
+  uses it, through that function's inputs and outputs. This is the same rule
+  as "never mock types you don't own", applied to choosing what to test.
+- Snapshots SHOULD be reserved for output that explicit assertions can't
+  express readably (a generated file, a rendered document). NEVER snapshot
+  what an explicit assertion next to it already pins, and avoid snapshots a
+  reviewer can't judge from the diff (one-line JSON, opaque numbers).
+- Every test MUST be able to fail. After writing one, briefly break the code
+  it guards (drop a sort, flip a comparison) and confirm the test fails. A
+  test that passes against broken code is cost without coverage.
 
 ## Simplicity
 
