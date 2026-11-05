@@ -23,8 +23,7 @@ Ref: react.dev/reference/rules.
   state used by one branch forces re-render of another.
 - Separate view from logic: extract non-trivial state machines and event logic
   into custom hooks (`useCheckout()`), keep components mostly markup. Domain
-  logic lives outside React entirely (see `frontend/common.md`), so it is
-  testable without rendering.
+  logic stays in plain TS per `frontend/common.md`.
 - Props are the component's public API: keep them minimal and typed; NEVER
   pass a grab-bag object "for flexibility". Prefer `children`/composition
   over boolean-prop configuration explosions.
@@ -37,9 +36,8 @@ Ref: react.dev/reference/rsc/server-components; react.dev/learn/thinking-in-reac
 
 ## State management
 
-- Derive, don't sync. If a value can be computed from props or existing state,
-  compute it during render. NEVER mirror props into state and NEVER use
-  `useEffect` + `setState` to keep two pieces of state aligned.
+- Derive, don't sync (`frontend/common.md`): in React, compute the value
+  during render; `useEffect` + `setState` is the banned form.
 
 ```tsx
 // Bad: synced copy, one render behind, two sources of truth
@@ -81,16 +79,14 @@ react.dev/learn/choosing-the-state-structure; react.dev/blog (React Compiler 1.0
 
 ## Data fetching
 
-- NEVER hand-roll fetch-in-`useEffect` with loading/error `useState` triples:
-  it races, refetches on every remount, and caches nothing. The official docs
-  themselves list its downsides and point to better options.
+- No fetch-in-`useEffect` with loading/error `useState` triples
+  (`frontend/common.md`); the official docs themselves list its downsides
+  (races, refetch on every remount, no caching) and point to better options.
 - Order of preference: (1) the framework's server-side loading (Server
   Components / route loaders); (2) an established async-state library
   (TanStack Query or SWR) for client-side caching, deduplication, and
   revalidation; (3) only in a tiny dependency-free app, one custom hook that
   centralizes cancellation and caching — never per-component effects.
-- Fetching code calls the app's typed API port per `frontend/common.md` —
-  components never call `fetch` with raw URLs.
 - Mutations invalidate or update the relevant queries at the mutation site;
   do not sprinkle refetch calls through unrelated components.
 
@@ -107,9 +103,8 @@ react.dev/learn/synchronizing-with-effects.
   fast-changing values (form input, cursor, list filters) MUST NOT live in
   one. Before adding a store or context, try lifting state or passing
   `children`; most "prop drilling" pain is a composition problem.
-- If server data is cached in a query library, do not duplicate it into a
-  global store — the cache is the single source of truth; a separate store
-  re-introduces sync bugs.
+- Server data stays in the query library's cache, never in a global store
+  (`frontend/common.md`).
 - A dedicated client-state store (e.g. Zustand) is a last resort for real
   cross-cutting client state (multi-panel editor state); it holds client
   state only, never copies of server data.

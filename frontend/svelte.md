@@ -15,9 +15,8 @@ files. See `patterns/tooling.md`.
 
 - One responsibility per component; split when unrelated concerns share a
   file or a `.svelte` file's `<script>` outgrows its markup.
-- Domain logic lives in plain TS modules (see `frontend/common.md`);
-  components bind UI to it. Reusable reactive logic goes in `.svelte.ts`
-  modules — runes work there too.
+- Reusable reactive logic goes in `.svelte.ts` modules — runes work there
+  too; domain logic stays in plain TS (`frontend/common.md`).
 - Props are declared by destructuring `$props()` with defaults; type them
   explicitly. (Unlike Solid, destructuring props is the documented pattern.)
 
@@ -42,8 +41,8 @@ Ref: svelte.dev/docs/svelte/$props, /snippet, /$bindable.
   the reactive store. Use `$state.raw` for large values you replace wholesale.
 - Do not destructure reactive objects: the extracted bindings stop updating.
   Access fields through the object, or destructure inside `$derived`.
-- Derive, don't sync: anything computable from other state is `$derived` (or
-  `$derived.by` for multi-step). Derived expressions MUST be side-effect free.
+- Derive, don't sync (`frontend/common.md`): use `$derived` (or `$derived.by`
+  for multi-step). Derived expressions MUST be side-effect free.
 
 ```svelte
 <script lang="ts">
@@ -57,8 +56,8 @@ Ref: svelte.dev/docs/svelte/$props, /snippet, /$bindable.
 ```
 
 - `$effect` is an escape hatch for synchronizing with external systems (DOM
-  measurement, third-party widgets, analytics). NEVER use it to update state
-  from other state, and NEVER for logic that belongs in an event handler.
+  measurement, third-party widgets, analytics); NEVER for logic that belongs
+  in an event handler.
 
 Ref: svelte.dev/docs/svelte/$state, /$derived, /$effect ("When not to use
 $effect").
@@ -85,7 +84,7 @@ export const session = $state({ user: null as User | null });
 - Context is scoped per component tree; module state is shared process-wide.
   On the server that means it leaks between requests — keep per-request data
   in `load` results or context, never in module state.
-- Server data stays in `load` results — do not copy it into module state.
+- Server data stays in `load` results (`frontend/common.md`).
 
 Ref: svelte.dev/docs/svelte/stores; svelte.dev/docs/kit/state-management.
 
@@ -97,11 +96,9 @@ Ref: svelte.dev/docs/svelte/stores; svelte.dev/docs/kit/state-management.
 - Server-only concerns (secrets, DB access) MUST live in `+page.server.ts` /
   `$lib/server/` so they never reach the client bundle.
 - Mutations go through form actions (progressive enhancement via `use:enhance`)
-  or the typed API port per `frontend/common.md` — components never `fetch`
-  raw URLs.
-- NEVER fetch in `onMount`/`$effect` with hand-rolled loading flags when a
-  `load` function can do it; for component-local async, prefer `{#await}`
-  blocks over manual state triples.
+  or the typed API port (`frontend/common.md`).
+- Instead of fetching in `onMount`/`$effect`, use a `load` function; for
+  component-local async, prefer `{#await}` blocks over manual state triples.
 
 Ref: svelte.dev/docs/kit/load; svelte.dev/docs/kit/form-actions.
 
