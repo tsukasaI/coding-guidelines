@@ -114,3 +114,23 @@ Use these terms consistently; do not introduce synonyms.
   genuine seams).
 - Code MUST be written for the reader: prefer boring, explicit code over
   clever constructs. Optimize only after measuring.
+
+### Reuse ladder
+
+Before writing new code, take the first option that fully works:
+
+1. Does it need to exist at all? Skip unrequested features and options, and
+   name what you skipped so the requester can ask for it.
+2. Something already in this codebase (helper, component, pattern), used the
+   way the surrounding code uses it.
+3. The standard library or platform feature, unless the project has its own.
+4. An already-installed dependency. NEVER add a dependency for a few lines.
+5. Otherwise, the minimum code that works.
+
+- The target is a minimal solution, not minimal effort: every caller, test,
+  and fixture the change breaks is still in scope.
+- NEVER cut for simplicity: validation at trust boundaries, error handling
+  that prevents data loss, security, accessibility, and anything the
+  requester explicitly asked for.
+
+Ref: DietrichGebert/ponytail (MIT), reuse ladder and never-cut list.

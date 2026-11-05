@@ -39,18 +39,18 @@ modelling, error handling, and testing; frontend files cover component
 boundaries, state management, data fetching, and context/global state. Every
 guide ends with the anti-patterns AI agents most often produce in that stack.
 
-## Philosophy (10 lines)
+## Philosophy (summary; rules live in `principles.md`)
 
-1. Dependencies point inward: the domain imports nothing from the edges.
-2. All wiring happens in one composition root; no DI containers or locators.
-3. Consumers own their interfaces (ports); adapters implement them at the edge.
-4. Parse, don't validate: boundaries produce typed values or errors, once.
-5. Make invalid states unrepresentable before reaching for runtime checks.
-6. Expected failures are values in the return path; panics are for bugs.
-7. Errors are translated at layer boundaries and handled exactly once.
-8. Test through public APIs; fake only at architectural seams.
-9. Derive, don't sync: UI state is computed from source data, not mirrored.
-10. Abstraction must be paid for by a concrete second use or a genuine seam.
+1. [Dependencies point inward](principles.md#dependency-direction): the domain imports nothing from the edges.
+2. [One composition root](principles.md#composition-root): all wiring in one place, no DI containers.
+3. [Consumers own their ports](principles.md#dependency-direction); adapters implement them at the edge.
+4. [Parse, don't validate](principles.md#parse-dont-validate): boundaries yield typed values or errors, once.
+5. [Invalid states unrepresentable](principles.md#parse-dont-validate) before runtime checks.
+6. [Errors are values](principles.md#errors-as-values); panics are for bugs.
+7. [Translate errors at boundaries](principles.md#errors-as-values), handle each exactly once.
+8. [Test public APIs](principles.md#testing-policy); fake only at architectural seams.
+9. [Derive, don't sync](frontend/common.md#derive-dont-sync): UI state is computed, not mirrored.
+10. [Simplicity](principles.md#simplicity): pay for abstractions; climb the reuse ladder first.
 
 ## Layout
 
