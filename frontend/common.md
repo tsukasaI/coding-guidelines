@@ -1,3 +1,10 @@
+---
+paths:
+  - "**/*.tsx"
+  - "**/*.jsx"
+  - "**/*.svelte"
+---
+
 # Frontend common rules
 
 Rules shared by every frontend guide. Load this file with any frontend task,

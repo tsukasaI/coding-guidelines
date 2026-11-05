@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.svelte"
+---
+
 # Svelte
 
 Specializes `principles.md`, `languages/typescript.md`, and

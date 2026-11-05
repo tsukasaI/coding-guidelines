@@ -8,6 +8,12 @@ adjust the path. Two ways to reference the repo:
 - **Path reference** — name the files and let the agent read them on demand.
   Prefer this when you want to keep the always-on context small.
 
+Where the owner's dotfiles already link the guidelines into
+`~/.claude/rules/` (see README, "Auto-loading in Claude Code"), skip
+`principles.md`, the `languages/` files, `frontend/common.md` and
+`frontend/svelte.md`: they load on their own. Import only `frontend/react.md`
+or `frontend/solid.md` and the `patterns/` files the project needs.
+
 ---
 
 ## Variant A: Go service, guidelines checked out as a sibling directory

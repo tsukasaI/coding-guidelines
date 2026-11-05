@@ -1,3 +1,11 @@
+---
+paths:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.mts"
+  - "**/*.cts"
+---
+
 # TypeScript
 
 Specializes `principles.md` for TypeScript. Baseline: TypeScript 7 (native

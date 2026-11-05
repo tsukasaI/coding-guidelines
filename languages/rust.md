@@ -1,3 +1,9 @@
+---
+paths:
+  - "**/*.rs"
+  - "**/Cargo.toml"
+---
+
 # Rust
 
 Specializes `principles.md` for Rust. Baseline: current stable Rust, 2024
@@ -238,3 +244,10 @@ github.com/EmbarkStudios/cargo-deny; github.com/rust-lang/rust-clippy/issues/139
 5. **Stringly-typed everything**: `Result<T, String>`, `HashMap<String, Value>`
    passed through the domain, IDs as `String`. Parse into newtypes and enums
    at the boundary; strings stop at the edge.
+6. **Silently dropping `Err` from fallible iterators**: `.filter_map(Result::ok)`,
+   `.flatten()` over `Result`s, or `if let Ok(x) = ...` discard the `Err`
+   arm without a decision. Handle each `Err`, or collect failures alongside
+   successes and report them.
+7. **`usize` `+` for counters over external data** (byte totals across
+   inputs): wraps on 32-bit targets and panics in debug builds. Use `u64`
+   with `saturating_add` (or `checked_add` when overflow must be reported).

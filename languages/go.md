@@ -1,3 +1,9 @@
+---
+paths:
+  - "**/*.go"
+  - "**/go.mod"
+---
+
 # Go
 
 Specializes `principles.md` for Go. Baseline: current stable Go, modules only.
@@ -287,3 +293,7 @@ github.com/golangci/golangci-lint/issues/1008 (govet shadow false positives).
 5. **Premature `%v`/`interface{}`/`any` generics**: reaching for `any` and
    reflection (or type parameters) where a concrete type or a small interface
    works. Write the concrete version first.
+6. **Dropping the error of a deferred `Close`/`Flush` on a write path**:
+   `defer f.Close()` on a file or buffered writer discards the error that
+   reports the data never reached disk. On write paths, close explicitly and
+   return its error (or join it into the named return in the defer).

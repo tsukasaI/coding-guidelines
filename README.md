@@ -33,6 +33,20 @@ When several rows match, use the most specific one. Do not load all files at
 once; each language file is self-contained on top of `principles.md`. See
 `templates/CLAUDE.md.example` for how a project should reference this repo.
 
+**Auto-loading in Claude Code.** The owner's dotfiles link `principles.md`,
+the three `languages/` files, `frontend/common.md` and `frontend/svelte.md`
+into `~/.claude/rules/coding-guidelines/` (cloud sessions fetch them at a
+pinned commit). `principles.md` loads in every session; the others carry
+`paths:` frontmatter, so each loads only when a matching file is read. A
+project then imports only what extensions cannot select: `frontend/react.md`
+or `frontend/solid.md` (both use `.tsx`) and the `patterns/` files.
+
+**Ownership boundary.** This repo owns what code should look like: principles,
+language and framework conventions, patterns, and lint/format/CI settings. How
+an AI agent behaves (permissions, git workflow, review process, precedence
+when existing code violates a rule here) belongs to the agent's own
+configuration, and this repo does not restate it.
+
 **Humans** — read `principles.md` end to end once; treat the guide files as
 lookup references. Language files cover project layout, composition/DI, domain
 modelling, error handling, and testing; frontend files cover component
