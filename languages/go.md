@@ -24,9 +24,9 @@ Ref: go.dev/doc/modules/layout; Google Go Style Guide (package names).
 
 ## Composition and dependency injection
 
-- Constructors are plain functions: `NewServer(cfg Config, store OrderStore) *Server`.
-  All wiring happens in `main` (or a `run(ctx, args)` it delegates to) — the
-  composition root. No DI container, no service locator, no `init` wiring.
+- Per principles.md "Composition root": constructors are plain functions,
+  `NewServer(cfg Config, store OrderStore) *Server`, and wiring happens in
+  `main` (or a `run(ctx, args)` it delegates to). No `init` wiring either.
 - Code-generated wiring (`google/wire`) MAY be considered only when the
   dependency graph is genuinely too large to wire by hand — and note that
   google/wire itself was archived in August 2025 and is unmaintained. In
@@ -88,8 +88,9 @@ Ref: go.dev/wiki/CodeReviewComments#interfaces; Google Go Style Guide (interface
 - Wrap boundary primitives in defined types: `type UserID string`,
   `type Cents int64`. Conversions are explicit, so mixed-up arguments become
   compile errors.
-- Enforce invariants in constructors that return `(T, error)`; unexported
-  fields keep other packages from forging values. The zero value stays
+- Per principles.md "Parse, don't validate": enforce invariants in
+  constructors that return `(T, error)`; unexported fields keep other
+  packages from forging values. The zero value stays
   obtainable regardless (`var e Email`, zero-valued struct fields) — make it
   valid, or treat zero as invalid and check for it where zeros can leak in
   (decoding, forgotten field initialization).
@@ -147,11 +148,11 @@ type OrderState interface{ OrderState() }
   `errname` covers sentinel naming; `errorlint` (above) also flags `==`
   comparisons and type assertions against wrapped errors. Neither catches a
   stray `strings.Contains(err.Error(), ...)`, code review still has to.)
-- Translate at layer boundaries: adapters map driver errors (`sql.ErrNoRows`)
-  to domain errors (`order.ErrNotFound`); transport maps domain errors to
-  status codes. Driver errors MUST NOT escape the adapter.
-- Handle an error exactly once. Log-and-return duplicates the failure in the
-  logs and robs the caller of the decision. Return it; log at the top.
+- Per principles.md "Errors as values" (translate at boundaries): adapters
+  map `sql.ErrNoRows` to `order.ErrNotFound`; driver errors MUST NOT escape
+  the adapter.
+- Handle an error exactly once: return it and log at the top, never
+  log-and-return (see anti-pattern 3).
 - `panic` is for programmer errors only (broken invariant, impossible branch).
   NEVER panic on bad input or I/O failure. Do not use `recover` as a general
   try/catch; a top-level HTTP handler recovery middleware is the exception.
@@ -220,9 +221,9 @@ func TestParseEmail(t *testing.T) {
 }
 ```
 
-- Prefer fakes (in-memory `OrderStore` with real map-backed behavior) over
-  expectation-based mocks; prefer real implementations over fakes when cheap
-  (real `bytes.Buffer`, real filesystem via `t.TempDir()`).
+- Per principles.md "Testing policy": fakes are an in-memory `OrderStore`
+  with real map-backed behavior; prefer real implementations over fakes when
+  cheap (real `bytes.Buffer`, real filesystem via `t.TempDir()`).
 - Mark helpers with `t.Helper()`. (enforced: `thelper`) Use `t.Cleanup` over
   deferred teardown in helpers. Use `t.Context()` for test-scoped contexts.
 - On failure, report the input, got, and want (`got X, want Y`). Test failures

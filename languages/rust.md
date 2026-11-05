@@ -24,8 +24,8 @@ Ref: The Rust Book ch. 11.3 (test organization); Rust API Guidelines
 
 ## Composition and dependency injection
 
-- Wire everything in `main` (the composition root): construct concrete
-  adapters, pass them into constructors. No DI framework, no registry, no
+- Per principles.md "Composition root": wire everything in `main`,
+  constructing concrete adapters and passing them into constructors. No
   `lazy_static`/`OnceLock` service singletons.
 - Ports are traits — defined ONLY at genuine seams: persistence, external
   services, clock, randomness. Everything else depends on concrete types.
@@ -64,9 +64,8 @@ Ref: The Rust Book ch. 18.2 (trait objects vs generics trade-offs).
 
 - Newtype every domain primitive: `struct OrderId(Uuid)`, `struct Cents(i64)`.
   Mixing up arguments becomes a compile error (C-NEWTYPE).
-- Parse, don't validate: constructors return `Result<Self, Error>` and are the
-  only way to obtain the type. Prefer static enforcement (the type can't hold
-  an invalid value) over runtime checks scattered at call sites (C-VALIDATE).
+- Per principles.md "Parse, don't validate": constructors return
+  `Result<Self, Error>` and are the only way to obtain the type (C-VALIDATE).
 
 ```rust
 // Bad: raw primitives, validity checked "somewhere"
@@ -119,9 +118,9 @@ Ref: Rust API Guidelines C-NEWTYPE, C-VALIDATE, C-CTOR.
   `#[cfg(test)]` code by `templates/clippy.toml.example`.)
 - Keep error enums per module/seam, not one crate-wide mega-enum: a caller of
   `Email::parse` should not have to match on `DatabaseUnavailable`.
-- Translate at boundaries: adapters map `sqlx::Error` into their own error
-  type (`RepoError::NotFound`); transport maps domain errors to status codes.
-  Driver error types MUST NOT appear in port signatures.
+- Per principles.md "Errors as values" (translate at boundaries): adapters
+  map `sqlx::Error` into their own error type (`RepoError::NotFound`); driver
+  error types MUST NOT appear in port signatures.
 
 ```rust
 // Good: the port's error names no driver type; the adapter converts
@@ -158,10 +157,9 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   public items — treat that constraint as the design pressure it is. In-file
   unit tests MAY touch private helpers, but if most tests need privates, the
   module boundary is wrong.
-- Domain types and logic are pure: test them with plain asserts, no doubles.
-- Fake at trait seams only: an in-memory `OrderRepo` backed by `HashMap` for
-  service tests. NEVER introduce a trait just so a test can mock a concrete
-  collaborator.
+- Per principles.md "Testing policy": domain types take plain asserts; the
+  fake at a trait seam is an in-memory `OrderRepo` backed by `HashMap`.
+  NEVER introduce a trait just so a test can mock a concrete collaborator.
 - Test error paths as first-class cases: `assert!(matches!(err, RepoError::NotFound))`.
 - Prefer plain `assert_eq!`/`matches!` over assertion-DSL crates; add
   property-based tests (proptest) for parsers and invariant-heavy types.

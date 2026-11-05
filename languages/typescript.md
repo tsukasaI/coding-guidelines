@@ -93,13 +93,12 @@ biomejs.dev.
 - Dependencies are function parameters — usually one `deps` object. Effectful
   modules export factories: `makeCheckout(deps): Checkout`. Pure modules
   export plain functions.
-- All wiring happens in the composition root (the entry file). NEVER use DI
-  containers, decorator injection, or module-level singletons that construct
-  their own dependencies on import. Import-time side effects are banned.
-- Ports are TypeScript interfaces (or object types) defined next to the
-  consumer; adapters implement them at the edge.
-- Read and parse env/config once at the composition root into a typed config
-  object. `process.env` MUST NOT appear outside it.
+- Per principles.md "Composition root": wiring happens in the entry file.
+  TypeScript-specific bans: decorator injection, module-level singletons that
+  construct their own dependencies on import, and import-time side effects.
+- Ports are TypeScript interfaces (or object types).
+- Config is parsed once at the entry file into a typed object; `process.env`
+  MUST NOT appear outside it.
 
 ```ts
 // Bad: module constructs its own deps at import time
@@ -196,8 +195,8 @@ type OrderDraft = z.infer<typeof OrderDraft>;
 
 ## Error handling
 
-- Expected failures are values: return a discriminated `Result` union from
-  domain and application functions, so callers must branch.
+- Per principles.md "Errors as values": return a discriminated `Result` union
+  from domain and application functions, so callers must branch.
 
 ```ts
 type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };
@@ -214,18 +213,17 @@ type CheckoutError =
 - An `async` call MUST be awaited, returned, or explicitly discarded (`void
   fireAndForget()`); a bare unawaited call silently drops its rejection.
   (enforced: `typescript/no-floating-promises`, type-aware)
-- Translate at boundaries: adapters map driver/HTTP errors into the port's
-  error union; the transport layer maps domain errors to status codes.
+- Per principles.md "Errors as values" (translate at boundaries): adapters
+  map driver/HTTP errors into the port's error union.
 
 Ref: typescriptlang.org/tsconfig (`useUnknownInCatchVariables`, part of `strict`).
 
 ## Testing
 
-- Test through each feature's public surface; no reaching into internals, no
-  spying on a module's private functions (if you need `vi.spyOn` internals,
-  the seam is missing).
-- Fake at ports: hand-written in-memory `OrderRepo` over auto-mock frameworks.
-  Pure domain functions need no doubles at all.
+- Per principles.md "Testing policy": test through each feature's public
+  surface; needing `vi.spyOn` on internals means the seam is missing.
+- Fakes are hand-written in-memory ports (`OrderRepo`), not auto-mock
+  frameworks.
 - Schema round-trips make good table tests: valid inputs parse, invalid inputs
   produce the expected issues.
 - Type-level regressions: use `expect-type`-style assertions (or `satisfies`)
