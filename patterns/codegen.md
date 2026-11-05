@@ -13,7 +13,9 @@ APIs, and MUST be recorded as an exception in the project's CLAUDE.md.
   a spec change IS the API change; the diff to generated code is its
   consequence, not the review target.
 - Lint the spec in CI (spectral is the common choice) so style and
-  breaking-change checks run before any code is generated.
+  breaking-change checks run before any code is generated. A project without
+  CI MUST run this from a lefthook `pre-push` job (`patterns/tooling.md`
+  "Maximal strictness stance").
 - Version the API in the spec (paths or headers); breaking changes get a new
   version, not an edited schema that generated clients silently absorb.
 
@@ -38,7 +40,8 @@ APIs, and MUST be recorded as an exception in the project's CLAUDE.md.
 - Generated code is committed. CI regenerates and fails on drift
   (`sqlc diff`; for others: run the generator, then `git diff --exit-code`).
   Why: reviewers see the real consequence of a schema change, and builds
-  don't depend on generator availability.
+  don't depend on generator availability. Without CI, the same check MUST
+  run as a lefthook `pre-push` job (`templates/lefthook.yml.example`).
 - NEVER hand-edit generated files. Customization goes through generator
   config, type-mapping options, or OpenAPI overlays. A hand edit survives
   exactly one regeneration.

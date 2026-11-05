@@ -68,5 +68,6 @@ then run `lefthook install`. Also copy or paste (per each template's own
 header) the config template(s) for the project's stack:
 `golangci.yml.example`; `cargo-lints.toml.example` + `clippy.toml.example` +
 `deny.toml.example`; `oxlintrc.json.example` + `oxfmtrc.json.example` +
-`tsconfig.json.example`, plus `eslint.svelte.config.example` or
-`eslint.solid.config.example` for Svelte/Solid.
+`tsconfig.json.example`, plus `oxlintrc.react.json.example` for React, or
+`eslint.svelte.config.example` / `eslint.solid.config.example` for
+Svelte/Solid.

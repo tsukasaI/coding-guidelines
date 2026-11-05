@@ -14,6 +14,9 @@ TypeScript strict, function components only.
 - Hooks are called at the top level only — not in loops, conditions, or
   nested functions.
 
+Lint: React projects use `templates/oxlintrc.react.json.example` (adds the
+`react` and `react-perf` oxlint plugins on top of the TypeScript base).
+
 Ref: react.dev/reference/rules.
 
 ## Component boundaries

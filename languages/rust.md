@@ -184,9 +184,10 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   explicitly unstable/buggy. Cherry-pick individual lints instead.
 - `cargo-deny` (`deny.toml`: licenses, bans, advisories, sources) and
   `cargo-audit` (RustSec advisories) cover supply-chain checks. Both are
-  slower than a local hook should be — they MAY run in CI only rather than
-  the mandatory pre-commit hook, unlike rustfmt/clippy which are
-  pre-commit-mandatory (see `patterns/tooling.md`).
+  slower than a local hook should be — they MAY run in CI rather than the
+  mandatory pre-commit hook, unlike rustfmt/clippy which are
+  pre-commit-mandatory. A project without CI MUST run both from a lefthook
+  `pre-push` job (`templates/lefthook.yml.example`, `patterns/tooling.md`).
 - The current cherry-pick set (`templates/cargo-lints.toml.example`) adds:
   `module_name_repetitions` (module-name stutter, mirrors go.md's
   `revive.exported`), `print_stdout`/`print_stderr` (production code

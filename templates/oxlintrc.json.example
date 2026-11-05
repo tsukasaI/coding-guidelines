@@ -2,11 +2,13 @@
 // This file is JSONC (comments allowed) despite the `.json` name — do NOT
 // validate it with `jq` (strict JSON only); use `oxlint` itself.
 // oxlint's config schema, oxfmt, and the type-aware lint path (tsgolint)
-// are all still maturing through 2026 — re-check this file against
-// oxc.rs on version bumps.
+// are all still maturing (patterns/tooling.md "Tool status") — re-check
+// this file against oxc.rs on version bumps.
+// Base for every TypeScript project. React projects use
+// templates/oxlintrc.react.json.example instead, which extends this file.
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "unicorn", "oxc", "react", "react-perf"],
+  "plugins": ["typescript", "unicorn", "oxc"],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -15,10 +17,6 @@
     "style": "error"
   },
   "rules": {
-    // React 19+ automatic JSX runtime: no import needed, so this rule
-    // (aimed at the classic runtime) is a false positive here.
-    "react/react-in-jsx-scope": "off",
-
     // enforced: typescript.md "any is banned in first-party code"
     "typescript/no-explicit-any": "error",
     // enforced: typescript.md "an async call MUST be awaited, returned, or
