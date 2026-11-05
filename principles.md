@@ -89,7 +89,8 @@ Use these terms consistently; do not introduce synonyms.
 
 - Test through the public API of a module/package/crate. Tests MUST NOT reach
   into private internals; if you feel the need, the public API is missing a
-  seam or the module is too big.
+  seam or the module is too big. (Language files carve narrow exceptions:
+  Rust in-file unit tests, Go `_internal_test.go`.)
 - Mock/fake ONLY at architectural seams — the ports defined above
   (persistence, external services, clock, randomness). NEVER mock types you
   don't own or internal collaborators two layers down. Why: tests coupled to

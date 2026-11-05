@@ -34,8 +34,8 @@ wildcard_imports = "warn"
 indexing_slicing = "warn"
 # allow_attributes_without_reason / allow_attributes: restriction, forces
 # `#[expect(lint, reason = "...")]` over a bare `#[allow(lint)]` so a stale
-# suppression starts warning again once the lint stops firing. Ties to
-# security.md's suppression audit-trail rule.
+# suppression starts warning again once the lint stops firing. Per
+# rust.md: every suppression carries a reviewable reason.
 allow_attributes = "warn"
 allow_attributes_without_reason = "warn"
 
