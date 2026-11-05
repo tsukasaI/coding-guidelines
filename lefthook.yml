@@ -1,10 +1,15 @@
 # This repo is markdown/config only today — no Go/Rust/TS source to lint —
-# so only the mandatory gitleaks job is wired up here. See
-# templates/lefthook.yml.example for the full per-language job set a
-# consuming project should add once it has source in that language.
+# so only the mandatory gitleaks job and the enforced-tag consistency check
+# are wired up here. See templates/lefthook.yml.example for the full
+# per-language job set a consuming project should add once it has source in
+# that language.
 
 pre-commit:
   parallel: true
   commands:
     gitleaks:
       run: gitleaks git --staged --redact
+    enforced-tags:
+      # every rule/job named in an (enforced: ...) tag must exist in a template
+      glob: "{*.md,**/*.md,templates/*,scripts/*.sh}"
+      run: scripts/check-enforced-tags.sh

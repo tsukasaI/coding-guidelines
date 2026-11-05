@@ -1,3 +1,10 @@
+---
+paths:
+  - "**/*.tsx"
+  - "**/*.jsx"
+  - "**/*.svelte"
+---
+
 # Frontend common rules
 
 Rules shared by every frontend guide. Load this file with any frontend task,
@@ -12,6 +19,15 @@ names the concrete mechanism. For lint/format/pre-commit setup, see
   modules per `languages/typescript.md`, outside the framework, so it is
   testable without rendering. Components and framework primitives bind UI to
   it; they MUST NOT contain business rules.
+
+## Derive, don't sync
+
+- Anything computable from props or other state MUST be derived, not stored.
+  NEVER mirror props into state, and NEVER use a reactive side-effect
+  primitive (`useEffect`, `$effect`, `createEffect`) to write one piece of
+  state from another. Why: a synced copy lags one update behind and creates
+  two sources of truth. The framework guide names the derivation primitive
+  (render-time computation, `$derived`, a function or `createMemo`).
 
 ## Data fetching
 
