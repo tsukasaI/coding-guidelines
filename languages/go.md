@@ -1,3 +1,9 @@
+---
+paths:
+  - "**/*.go"
+  - "**/go.mod"
+---
+
 # Go
 
 Specializes `principles.md` for Go. Baseline: current stable Go, modules only.
@@ -11,26 +17,27 @@ Specializes `principles.md` for Go. Baseline: current stable Go, modules only.
 - Code that must not be imported by other modules goes in `internal/`. Default
   new packages to `internal/` and promote them deliberately.
 - NEVER create a `pkg/` directory. It is not part of the official layout and
-  adds a meaningless path segment. (enforced: lefthook layout-ban job on the
-  `pkg/**` glob; `depguard` bans import paths, not directory names, so it
+  adds a meaningless path segment. (enforced: `go-layout-ban` lefthook job on
+  the `pkg/**` glob; `depguard` bans import paths, not directory names, so it
   cannot catch this. See `templates/lefthook.yml.example`.)
 - Package names MUST be short, lower-case, singular nouns (`order`, not
   `orders`, `orderutils`, `common`, `helpers`). Name packages after what they
   provide, not what they contain.
 - NEVER stutter: `order.Service`, not `order.OrderService`. (enforced:
-  `revive.var-naming`)
+  `revive.exported`)
 
 Ref: go.dev/doc/modules/layout; Google Go Style Guide (package names).
 
 ## Composition and dependency injection
 
-- Constructors are plain functions: `NewServer(cfg Config, store OrderStore) *Server`.
-  All wiring happens in `main` (or a `run(ctx, args)` it delegates to) — the
-  composition root. No DI container, no service locator, no `init` wiring.
+- Per principles.md "Composition root": constructors are plain functions,
+  `NewServer(cfg Config, store OrderStore) *Server`, and wiring happens in
+  `main` (or a `run(ctx, args)` it delegates to). No `init` wiring either.
 - Code-generated wiring (`google/wire`) MAY be considered only when the
   dependency graph is genuinely too large to wire by hand — and note that
-  google/wire itself was archived in August 2025 and is unmaintained. In
-  practice: restructure the graph before reaching for a tool.
+  google/wire itself is archived and unmaintained (`patterns/tooling.md`
+  "Tool status"). In practice: restructure the graph before reaching for a
+  tool.
 - NEVER use package-level mutable state (global `var db *sql.DB`, registries
   mutated in `init`). Pass dependencies explicitly. Why: globals create hidden
   coupling and order-dependent bugs, and make parallel tests impossible.
@@ -88,8 +95,9 @@ Ref: go.dev/wiki/CodeReviewComments#interfaces; Google Go Style Guide (interface
 - Wrap boundary primitives in defined types: `type UserID string`,
   `type Cents int64`. Conversions are explicit, so mixed-up arguments become
   compile errors.
-- Enforce invariants in constructors that return `(T, error)`; unexported
-  fields keep other packages from forging values. The zero value stays
+- Per principles.md "Parse, don't validate": enforce invariants in
+  constructors that return `(T, error)`; unexported fields keep other
+  packages from forging values. The zero value stays
   obtainable regardless (`var e Email`, zero-valued struct fields) — make it
   valid, or treat zero as invalid and check for it where zeros can leak in
   (decoding, forgotten field initialization).
@@ -147,11 +155,11 @@ type OrderState interface{ OrderState() }
   `errname` covers sentinel naming; `errorlint` (above) also flags `==`
   comparisons and type assertions against wrapped errors. Neither catches a
   stray `strings.Contains(err.Error(), ...)`, code review still has to.)
-- Translate at layer boundaries: adapters map driver errors (`sql.ErrNoRows`)
-  to domain errors (`order.ErrNotFound`); transport maps domain errors to
-  status codes. Driver errors MUST NOT escape the adapter.
-- Handle an error exactly once. Log-and-return duplicates the failure in the
-  logs and robs the caller of the decision. Return it; log at the top.
+- Per principles.md "Errors as values" (translate at boundaries): adapters
+  map `sql.ErrNoRows` to `order.ErrNotFound`; driver errors MUST NOT escape
+  the adapter.
+- Handle an error exactly once: return it and log at the top, never
+  log-and-return (see anti-pattern 3).
 - `panic` is for programmer errors only (broken invariant, impossible branch).
   NEVER panic on bad input or I/O failure. Do not use `recover` as a general
   try/catch; a top-level HTTP handler recovery middleware is the exception.
@@ -220,9 +228,9 @@ func TestParseEmail(t *testing.T) {
 }
 ```
 
-- Prefer fakes (in-memory `OrderStore` with real map-backed behavior) over
-  expectation-based mocks; prefer real implementations over fakes when cheap
-  (real `bytes.Buffer`, real filesystem via `t.TempDir()`).
+- Per principles.md "Testing policy": fakes are an in-memory `OrderStore`
+  with real map-backed behavior; prefer real implementations over fakes when
+  cheap (real `bytes.Buffer`, real filesystem via `t.TempDir()`).
 - Mark helpers with `t.Helper()`. (enforced: `thelper`) Use `t.Cleanup` over
   deferred teardown in helpers. Use `t.Context()` for test-scoped contexts.
 - On failure, report the input, got, and want (`got X, want Y`). Test failures
@@ -261,9 +269,8 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
 - Suppressions (`//nolint:...`) MUST carry a reason
   (`//nolint:errcheck // reason`); enforced by `nolintlint` with
   `require-explanation: true` (the linter's default is `false`, enabling
-  `nolintlint` alone does not require a reason). Ties to `security.md`'s
-  suppression audit-trail rule: an unreadable-reason suppression cannot be
-  reviewed or expired.
+  `nolintlint` alone does not require a reason). Why: a suppression
+  without a readable reason cannot be reviewed or expired.
 
 Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt;
 github.com/golangci/golangci-lint/issues/1008 (govet shadow false positives).
@@ -286,3 +293,7 @@ github.com/golangci/golangci-lint/issues/1008 (govet shadow false positives).
 5. **Premature `%v`/`interface{}`/`any` generics**: reaching for `any` and
    reflection (or type parameters) where a concrete type or a small interface
    works. Write the concrete version first.
+6. **Dropping the error of a deferred `Close`/`Flush` on a write path**:
+   `defer f.Close()` on a file or buffered writer discards the error that
+   reports the data never reached disk. On write paths, close explicitly and
+   return its error (or join it into the named return in the defer).

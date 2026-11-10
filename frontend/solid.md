@@ -9,18 +9,19 @@ The one mental model that prevents most bugs: **components run once**. There
 is no re-render. Reactivity lives in signals and the tracking scopes that read
 them (JSX expressions, memos, effects) — not in re-executing function bodies.
 
-`oxlint` has no built-in Solid plugin yet (open, unresolved upstream
-discussion) — keep `eslint-plugin-solid` running as a fallback. See
-`patterns/tooling.md`.
+Lint gap: keep `eslint-plugin-solid` running (`templates/eslint.solid.config.example`;
+rationale in `patterns/tooling.md` "Framework gaps").
+Because that ESLint step consumes the TS API, Solid projects stay on
+TypeScript 6.x (`patterns/tooling.md` "TypeScript version vs. TS-API tools").
 
 ## Component boundaries
 
 - Components are setup functions: wire signals, memos, and handlers, return
   JSX. Splitting components is for organization only — unlike React it has no
   performance meaning, so split by responsibility, never "to reduce renders".
-- Domain logic lives in plain TS modules (see `frontend/common.md`);
-  reusable reactive logic goes in custom primitives (`createCheckout()`),
-  Solid's equivalent of custom hooks.
+- Reusable reactive logic goes in custom primitives (`createCheckout()`),
+  Solid's equivalent of custom hooks; domain logic stays in plain TS
+  (`frontend/common.md`).
 - NEVER destructure `props` or spread them into a plain object
   (`const p = { ...props }`): both read the reactive getters once, severing
   reactivity. Access `props.x` inside the tracking scope that needs it.
@@ -54,7 +55,8 @@ Ref: docs.solidjs.com/concepts/components/props.
   TS guide's immutability rule: the store proxy IS the reactive store, and
   path setters are how fine-grained updates propagate. Plain domain objects
   outside signals/stores stay immutable.
-- Derive, don't sync — and in Solid, "derive" means *a function*:
+- Derive, don't sync (`frontend/common.md`) — and in Solid, "derive" means
+  *a function*:
 
 ```tsx
 const [items, setItems] = createSignal<Item[]>([]);
@@ -76,8 +78,7 @@ const total = createMemo(() => items().reduce((s, i) => s + i.price, 0));
   once per dependency change. Default to the plain function; memoize when the
   computation is expensive or read from multiple tracking scopes.
 - `createEffect` is for side effects on external systems (DOM measurement,
-  imperative libs, logging). NEVER set signals inside `createEffect` to derive
-  state — that is what memos are for, and it invites loops and extra work.
+  imperative libs, logging); derive with memos, not effect-set signals.
 - Colocate signals in the component or primitive that owns them; lift to a
   shared custom primitive or module-level signal only when actually shared.
 
@@ -89,11 +90,8 @@ Ref: docs.solidjs.com/concepts/derived-values/memos, /concepts/effects.
   SolidStart route `load`/`query`): it ties the request to a source signal,
   re-fetches when it changes, and integrates with `<Suspense>` and
   `<ErrorBoundary>`.
-- NEVER fetch inside `createEffect` with hand-rolled loading/error signals —
-  it races and bypasses Suspense (the docs position `createResource` as the
-  correct alternative).
-- The fetcher calls the app's typed API port per `frontend/common.md`, never
-  raw `fetch` + `as` in components.
+- No fetch inside `createEffect` (`frontend/common.md`); the docs position
+  `createResource` as the alternative. The fetcher calls the typed API port.
 
 ```tsx
 const [order] = createResource(orderId, (id) => api.fetchOrder(id));
@@ -111,7 +109,7 @@ Ref: docs.solidjs.com/reference/basic-reactivity/create-resource.
   ports, theme, current user — provided at the composition root; and for
   state scoped to a subtree with multiple instances (each provider is its own
   scope; a module-level signal would be accidentally shared).
-- Server data belongs in resources/route loaders, not copied into stores.
+- Server data stays in resources/route loaders (`frontend/common.md`).
 
 ## Error handling
 

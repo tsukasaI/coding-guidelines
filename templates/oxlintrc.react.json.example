@@ -1,0 +1,16 @@
+// For React projects. Copy templates/oxlintrc.json.example to
+// `.oxlintrc.base.json`, then copy this file to `.oxlintrc.json` at the
+// project root. It extends the base and only adds the React plugins; the
+// base stays React-free so non-React TypeScript projects don't pay for them.
+// This file is JSONC (comments allowed) despite the `.json` name — do NOT
+// validate it with `jq` (strict JSON only); use `oxlint` itself.
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["./.oxlintrc.base.json"],
+  "plugins": ["react", "react-perf"],
+  "rules": {
+    // React 19+ automatic JSX runtime: no import needed, so this rule
+    // (aimed at the classic runtime) is a false positive here.
+    "react/react-in-jsx-scope": "off"
+  }
+}

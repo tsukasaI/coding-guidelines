@@ -12,6 +12,10 @@ pre-commit:
       run: gitleaks git --staged --redact
 
     go-format:
+      # -w + stage_fixed auto-fix instead of failing: a deliberate exception
+      # to the zero-warnings gate (patterns/tooling.md "Maximal strictness
+      # stance"). gofumpt's rewrite is deterministic and semantics-free, so
+      # auto-fixing loses nothing.
       glob: "*.go"
       run: gofumpt -l -w {staged_files}
       stage_fixed: true
@@ -43,7 +47,8 @@ pre-commit:
       glob: "*.{ts,tsx}"
       # --type-aware is required for no-floating-promises and
       # switch-exhaustiveness-check (needs the oxlint-tsgolint devDependency)
-      run: npx oxlint --type-aware -c .oxlintrc.json {staged_files}
+      # --deny-warnings: a rule downgraded to "warn" must still fail the hook
+      run: npx oxlint --type-aware --deny-warnings -c .oxlintrc.json {staged_files}
     ts-layout-ban:
       # typescript.md "group by domain feature, not by kind" — no linter
       # covers directory naming, so this is a plain glob-triggered shell job.
@@ -52,3 +57,26 @@ pre-commit:
       run: >
         echo "layout-ban: group by domain feature (src/order/, src/billing/),
         not by kind (see languages/typescript.md Project layout)" >&2 && exit 1
+
+# CI-only checks. Projects WITHOUT CI MUST run these from pre-push instead
+# (patterns/tooling.md "Maximal strictness stance"); projects with CI can
+# leave them commented out. Uncomment what applies.
+#
+# pre-push:
+#   parallel: true
+#   commands:
+#     rust-deny:
+#       glob: "{Cargo.toml,Cargo.lock,deny.toml}"
+#       run: cargo deny check
+#     rust-audit:
+#       glob: "{Cargo.toml,Cargo.lock}"
+#       run: cargo audit
+#     # Generic codegen drift check (patterns/codegen.md): regenerate, then
+#     # fail if the committed output differs. Replace `make generate` with the
+#     # project's generator command (e.g. `sqlc generate`).
+#     codegen-drift:
+#       run: make generate && git diff --exit-code
+#     # Spec lint (patterns/codegen.md), e.g. spectral:
+#     # openapi-lint:
+#     #   glob: "openapi/**"
+#     #   run: npx spectral lint openapi/openapi.yaml

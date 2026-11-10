@@ -21,9 +21,10 @@ truth; typed access code is generated from them (`patterns/codegen.md`).
 
 ## Transactions
 
-- Atomicity is a port capability (principles.md): either one transactional
-  method on a single port, or a `UnitOfWork` port owned by the application
-  layer. Driver transaction types MUST NOT appear in port signatures.
+- Atomicity is a port capability (principles.md "Dependency direction", which
+  bans driver transaction types in port signatures). Two forms: one
+  transactional method on a single port, or a `UnitOfWork` port owned by the
+  application layer.
 - One use case = at most one transaction. Keep it short: no network calls,
   no domain-event dispatch, no logging loops inside the transaction.
 
@@ -76,8 +77,7 @@ Ref: docs.sqlc.dev; docs.rs/sqlx (offline mode, migrate); pgtyped.dev.
    domain types, dragging the driver into the domain. Keep row types in the
    adapter and parse into domain types.
 2. **Driver transaction through the port**: `tx pgx.Tx` / `tx: Transaction`
-   parameters on port methods. Atomicity is expressed as intent (one method /
-   UnitOfWork), the driver stays in the adapter.
+   parameters on port methods (see Transactions above and principles.md).
 3. **Repository-per-table with CRUD×N**: mechanical `GetX/SaveX/DeleteX` for
    every table. Ports exist per aggregate and per consumer need.
 4. **Hand-built SQL strings** with interpolated input — banned outright

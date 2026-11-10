@@ -28,6 +28,9 @@ confidence-threshold = 0.8
 ignore = false
 
 [bans]
+# Deliberate exception to the zero-warnings gate (patterns/tooling.md
+# "Maximal strictness stance"): duplicate transitive versions are often
+# unfixable by the project itself, so they warn instead of blocking.
 multiple-versions = "warn"
 wildcards = "deny"
 highlight = "all"

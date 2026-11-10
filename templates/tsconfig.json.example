@@ -1,6 +1,10 @@
 // Copy to `tsconfig.json` at the project root.
 // Per languages/typescript.md's Compiler baseline: TS 7 (native compiler),
 // ESM only, strict only.
+// Exception: Svelte and Solid projects (which need ESLint via
+// templates/eslint.*.config.example) stay on TS 6.x until a stable TS API
+// ships (patterns/tooling.md "TypeScript version vs. TS-API tools"). The
+// options below are valid on 6.x too.
 {
   "compilerOptions": {
     "strict": true,

@@ -14,10 +14,16 @@ description = "Internal API token"
 regex = '''internal_api_token_[a-zA-Z0-9]{32}'''
 tags = ["key", "internal"]
 
-[allowlist]
-description = "Known non-secrets — test fixtures only, never a real leaked credential"
-paths = [
-  '''.*_test\.go$''',
-  '''.*\.test\.ts$''',
-  '''testdata/.*''',
-]
+# Test paths are scanned like any other path (patterns/tooling.md "Secret
+# scanning"): no `paths` entries for tests or testdata. Allowlist a specific
+# known dummy value instead, and NEVER a real leaked credential (rotate it).
+# Uncomment and adapt; each entry matches one exact fixture value.
+#
+# [allowlist]
+# description = "Known dummy values used in fixtures"
+# regexes = [
+#   '''AKIAIOSFODNN7EXAMPLE''',   # AWS's documented example key id
+# ]
+# stopwords = [
+#   "internal_api_token_00000000000000000000000000000000",
+# ]

@@ -33,24 +33,38 @@ When several rows match, use the most specific one. Do not load all files at
 once; each language file is self-contained on top of `principles.md`. See
 `templates/CLAUDE.md.example` for how a project should reference this repo.
 
+**Auto-loading in Claude Code.** The owner's dotfiles link `principles.md`,
+the three `languages/` files, `frontend/common.md` and `frontend/svelte.md`
+into `~/.claude/rules/coding-guidelines/` (cloud sessions fetch them at a
+pinned commit). `principles.md` loads in every session; the others carry
+`paths:` frontmatter, so each loads only when a matching file is read. A
+project then imports only what extensions cannot select: `frontend/react.md`
+or `frontend/solid.md` (both use `.tsx`) and the `patterns/` files.
+
+**Ownership boundary.** This repo owns what code should look like: principles,
+language and framework conventions, patterns, and lint/format/CI settings. How
+an AI agent behaves (permissions, git workflow, review process, precedence
+when existing code violates a rule here) belongs to the agent's own
+configuration, and this repo does not restate it.
+
 **Humans** — read `principles.md` end to end once; treat the guide files as
 lookup references. Language files cover project layout, composition/DI, domain
 modelling, error handling, and testing; frontend files cover component
 boundaries, state management, data fetching, and context/global state. Every
 guide ends with the anti-patterns AI agents most often produce in that stack.
 
-## Philosophy (10 lines)
+## Philosophy (summary; rules live in `principles.md`)
 
-1. Dependencies point inward: the domain imports nothing from the edges.
-2. All wiring happens in one composition root; no DI containers or locators.
-3. Consumers own their interfaces (ports); adapters implement them at the edge.
-4. Parse, don't validate: boundaries produce typed values or errors, once.
-5. Make invalid states unrepresentable before reaching for runtime checks.
-6. Expected failures are values in the return path; panics are for bugs.
-7. Errors are translated at layer boundaries and handled exactly once.
-8. Test through public APIs; fake only at architectural seams.
-9. Derive, don't sync: UI state is computed from source data, not mirrored.
-10. Abstraction must be paid for by a concrete second use or a genuine seam.
+1. [Dependencies point inward](principles.md#dependency-direction): the domain imports nothing from the edges.
+2. [One composition root](principles.md#composition-root): all wiring in one place, no DI containers.
+3. [Consumers own their ports](principles.md#dependency-direction); adapters implement them at the edge.
+4. [Parse, don't validate](principles.md#parse-dont-validate): boundaries yield typed values or errors, once.
+5. [Invalid states unrepresentable](principles.md#parse-dont-validate) before runtime checks.
+6. [Errors are values](principles.md#errors-as-values); panics are for bugs.
+7. [Translate errors at boundaries](principles.md#errors-as-values), handle each exactly once.
+8. [Test public APIs](principles.md#testing-policy); fake only at architectural seams.
+9. [Derive, don't sync](frontend/common.md#derive-dont-sync): UI state is computed, not mirrored.
+10. [Simplicity](principles.md#simplicity): pay for abstractions; climb the reuse ladder first.
 
 ## Layout
 
@@ -66,6 +80,7 @@ frontend/solid.md        Solid 1.9+ (2.0 beta not covered)
 patterns/persistence.md  DB access: repositories, transactions, migrations
 patterns/http.md         HTTP server & client patterns
 patterns/codegen.md      schema-first code generation (OpenAPI, SQL)
-patterns/tooling.md      lint/format tool choice, mandatory pre-commit + gitleaks
+patterns/tooling.md      lint/format tool choice and status, mandatory pre-commit + gitleaks
 templates/CLAUDE.md.example  how a project references this repo
+scripts/check-enforced-tags.sh  checks (enforced: ...) tags name real template rules
 ```
