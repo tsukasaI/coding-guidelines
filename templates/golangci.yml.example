@@ -34,9 +34,7 @@ linters:
 
     govet:
       enable:
-        - shadow   # known false-positive-prone on common err-handling
-                   # patterns (upstream golangci-lint#1008) — suppress
-                   # individual false positives with a `//nolint:govet`
+        - shadow   # suppress a single case with a `//nolint:govet`
                    # + reason (nolintlint enforces the reason below), don't
                    # disable the check
 
