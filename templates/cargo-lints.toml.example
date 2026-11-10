@@ -8,6 +8,8 @@
 
 [lints.rust]
 unsafe_code = "forbid"
+# missing_docs: every public item gets a doc comment (Google Rust Style Guide).
+missing_docs = "warn"
 
 [lints.clippy]
 correctness = { level = "deny", priority = -1 }
@@ -43,3 +45,28 @@ allow_attributes_without_reason = "warn"
 # positive/negative reports), cherry-picked individually per the
 # no-blanket-nursery rule above, not because it's especially reliable.
 redundant_clone = "warn"
+
+# Google Rust Style Guide rules (see languages/rust.md "API design",
+# "Implementation", "Documentation").
+# missing_panics_doc: pedantic, public fns that can panic need `# Panics`.
+missing_panics_doc = "warn"
+# fn_params_excessive_bools: pedantic, use an enum instead of bool flags.
+fn_params_excessive_bools = "warn"
+# ref_option: pedantic, take `Option<&T>` instead of `&Option<T>`.
+ref_option = "warn"
+# needless_for_each: pedantic, a `for` loop instead of `Iterator::for_each`.
+needless_for_each = "warn"
+# clone_on_ref_ptr: restriction, `Arc::clone(&x)` so shared-pointer clones
+# read differently from deep copies.
+clone_on_ref_ptr = "warn"
+# string_add: restriction, `format!`/`push_str` instead of `String + &str`.
+string_add = "warn"
+# undocumented_unsafe_blocks: restriction, every `unsafe` block carries a
+# `// SAFETY:` comment. Only live when unsafe_code is downgraded to deny
+# under a documented exception.
+undocumented_unsafe_blocks = "warn"
+# exhaustive_enums / exhaustive_structs: restriction, push
+# `#[non_exhaustive]` onto public types. Uncomment only in a library crate
+# consumed by other teams; in an application crate they over-reach.
+# exhaustive_enums = "warn"
+# exhaustive_structs = "warn"
