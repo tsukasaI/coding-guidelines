@@ -3,10 +3,21 @@
 Copy the relevant block into the project's `CLAUDE.md` (or `AGENTS.md`) and
 adjust the path. Two ways to reference the repo:
 
-- **Checkout / submodule** — clone this repo next to (or inside) the project
-  and point at files with `@` imports, so the content is loaded automatically.
-- **Path reference** — name the files and let the agent read them on demand.
-  Prefer this when you want to keep the always-on context small.
+- **Checkout / submodule** (Variants A and C) — clone this repo next to (or
+  inside) the project and point at files with `@` imports, so the content is
+  loaded automatically. `@path` imports are Claude Code-specific: other agents
+  do not expand them and would see literal `@...` lines. A project whose
+  guidelines live in `AGENTS.md`, or that other agents also use, MUST use
+  Variant B instead.
+- **Path reference** (Variant B) — name the files and let the agent read them
+  on demand. Works with any agent. Prefer this when you want to keep the
+  always-on context small.
+
+`@`-imported files always load in full: the `paths:` frontmatter on this
+repo's language files is honoured only for files under `.claude/rules/`, not
+for `@` imports.
+
+Ref: https://code.claude.com/docs/en/memory
 
 Where the owner's dotfiles already link the guidelines into
 `~/.claude/rules/` (see README, "Auto-loading in Claude Code"), skip
@@ -26,6 +37,10 @@ This project follows ../coding-guidelines. Load before writing code:
 @../coding-guidelines/principles.md
 @../coding-guidelines/languages/go.md
 ```
+
+This import points outside the project, so Claude Code shows a one-time
+approval dialog on the first session; declining disables the imports and the
+dialog does not reappear.
 
 ## Variant B: React + TypeScript app, loaded on demand
 
