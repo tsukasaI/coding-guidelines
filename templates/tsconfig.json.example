@@ -8,8 +8,12 @@
 {
   "compilerOptions": {
     "strict": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    // Default: code Node runs directly (services, libraries). `nodenext`
+    // implies `moduleResolution: "nodenext"`. For bundled code and frontends
+    // (Vite, SvelteKit, Bun, tsx) use instead:
+    //   "module": "esnext", "moduleResolution": "bundler"
+    // Never use `bundler` for code Node runs directly (languages/typescript.md).
+    "module": "nodenext",
     "target": "es2025",
 
     // Beyond `strict`, per languages/typescript.md.
