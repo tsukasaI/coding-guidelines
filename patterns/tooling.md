@@ -87,7 +87,7 @@ the row and its date when the fact changes.
 | oxfmt | Beta since 2026-02-24; still 0.x (`oxfmt_v0.78.0`, 2026-11-09) (https://github.com/oxc-project/oxc/releases) | 2026-11 |
 | tsgolint | Covers 59/61 of `typescript-eslint`'s type-aware rules (tsgolint README) | 2026-11 |
 | oxc `.svelte` template linting | Not shipped; full framework file-format support is on oxc's 2026 roadmap | 2026 |
-| oxlint Solid plugin | None; open, unresolved upstream discussion | undated |
+| oxlint Solid plugin | No native plugin (oxc `crates/oxc_linter/src/rules` has no `solid` directory); the upstream request oxc-project/oxc#13894 was closed on 2025-11-21. Keep `eslint-plugin-solid` running through ESLint. | 2026-11 |
 | TypeScript 7 | Native compiler, GA July 2026; `latest` is 7.0.2; 7.0 has no stable programmatic API (planned for 7.1, in beta since 2026-10-20); typescript-eslint supports `<6.1.0` | 2026-11 |
 | Biome | Own type-aware inference; has react-hooks-equivalent rules (`useExhaustiveDependencies`, `useHookAtTopLevel`: https://biomejs.dev/linter/rules/use-exhaustive-dependencies/) and Solid and Svelte lint domains (https://biomejs.dev/linter/domains/); Svelte language support is labelled experimental | 2026-11 |
 | google/wire | Archived, unmaintained | 2025-08 |
