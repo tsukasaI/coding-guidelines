@@ -37,7 +37,8 @@ once; each language file is self-contained on top of `principles.md`. See
 the three `languages/` files, `frontend/common.md` and `frontend/svelte.md`
 into `~/.claude/rules/coding-guidelines/` (cloud sessions fetch them at a
 pinned commit). `principles.md` loads in every session; the others carry
-`paths:` frontmatter, so each loads only when a matching file is read. A
+`paths:` frontmatter, so each loads only when a matching file is read; each file's `paths:`
+frontmatter is the source of truth for which files trigger it. A
 project then imports only what extensions cannot select: `frontend/react.md`
 or `frontend/solid.md` (both use `.tsx`) and the `patterns/` files.
 

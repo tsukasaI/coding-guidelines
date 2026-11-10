@@ -1,6 +1,11 @@
 ---
 paths:
   - "**/*.svelte"
+  - "**/*.svelte.ts"
+  - "**/*.svelte.js"
+  - "**/+*.ts"
+  - "**/+*.js"
+  - "**/hooks.*.ts"
 ---
 
 # Svelte
