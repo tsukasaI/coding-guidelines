@@ -15,14 +15,17 @@ for the project's stack.
   `pre-commit` framework (broad ecosystem, but adds a Python dependency to
   every contributor's machine) without a recorded exception in the
   project's CLAUDE.md.
-- `git commit --no-verify` and hook-level `SKIP=` bypasses are banned except
-  as a documented emergency, and that exception is human-only: AI agents
-  NEVER use it. When a human invokes it, the bypass and a follow-up ticket
-  to fix the underlying finding are recorded in the commit message.
+- `git commit --no-verify` and lefthook's own bypasses (`LEFTHOOK=0`, which
+  disables all hooks, and `LEFTHOOK_EXCLUDE`, which skips named ones) are
+  banned except as a documented emergency, and that exception is
+  human-only: AI agents NEVER use it. When a human invokes it, the bypass
+  and a follow-up ticket to fix the underlying finding are recorded in the
+  commit message.
 - Every hook fails the commit on any warning, not only on errors — see
   "Maximal strictness stance" below.
 
-Ref: lefthook.dev (parallel execution, monorepo configuration).
+Ref: lefthook.dev (parallel execution, monorepo configuration);
+lefthook.dev/usage/envs/LEFTHOOK/ (`LEFTHOOK`, `LEFTHOOK_EXCLUDE`).
 
 ## Secret scanning (mandatory)
 
@@ -158,7 +161,7 @@ with oxlint + tsgolint and use TS 7.
 
 ## Anti-patterns AI agents produce around tooling
 
-1. **Reaching for `--no-verify`/`SKIP=`** the moment a hook fails, instead
+1. **Reaching for `--no-verify`/`LEFTHOOK=0`/`LEFTHOOK_EXCLUDE`** the moment a hook fails, instead
    of fixing the finding. The bypass is a human-only emergency exception
    with a recorded follow-up; an agent never uses it, and "the linter is
    being annoying" is not an emergency.
