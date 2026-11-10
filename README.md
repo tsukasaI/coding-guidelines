@@ -76,7 +76,7 @@ languages/typescript.md  TypeScript (strict, ESM)
 frontend/common.md       rules shared by all frontend guides
 frontend/react.md        React 19+ (Compiler assumed)
 frontend/svelte.md       Svelte 5 (runes)
-frontend/solid.md        Solid 1.9+ (2.0 beta not covered)
+frontend/solid.md        Solid 1.9+ (2.0 is a release candidate; this guide targets 1.9)
 patterns/persistence.md  DB access: repositories, transactions, migrations
 patterns/http.md         HTTP server & client patterns
 patterns/codegen.md      schema-first code generation (OpenAPI, SQL)
