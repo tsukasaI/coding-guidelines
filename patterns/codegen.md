@@ -12,12 +12,16 @@ APIs, and MUST be recorded as an exception in the project's CLAUDE.md.
 - The OpenAPI spec and migration SQL live in VCS and are reviewed like code —
   a spec change IS the API change; the diff to generated code is its
   consequence, not the review target.
-- Lint the spec in CI (spectral is the common choice) so style and
-  breaking-change checks run before any code is generated. A project without
-  CI MUST run this from a lefthook `pre-push` job (`patterns/tooling.md`
-  "Maximal strictness stance").
+- Lint the spec in CI (spectral is the common choice) so style and rule
+  checks run before any code is generated. Spectral lints one document; it
+  does not compare versions, so it cannot detect a breaking change.
+- Gate breaking changes with a spec-diff tool that compares the changed spec
+  with its base revision (oasdiff is one option), failing CI on a breaking
+  finding. A project without CI MUST run both checks from lefthook
+  `pre-push` jobs (`patterns/tooling.md` "Maximal strictness stance").
 - Version the API in the spec (paths or headers); breaking changes get a new
-  version, not an edited schema that generated clients silently absorb.
+  version, not an edited schema that generated clients silently absorb. The
+  spec-diff gate is what enforces this.
 
 ## What gets generated
 
@@ -57,7 +61,9 @@ APIs, and MUST be recorded as an exception in the project's CLAUDE.md.
 
 Ref: docs.sqlc.dev (diff/vet); github.com/oapi-codegen/oapi-codegen;
 openapi-ts.dev; docs.rs/sqlx (offline mode); pgtyped.dev;
-github.com/oxidecomputer/progenitor.
+github.com/oxidecomputer/progenitor; github.com/stoplightio/spectral
+(README: single-document linting); github.com/oasdiff/oasdiff (`breaking`,
+`--fail-on`).
 
 ## Anti-patterns AI agents produce around codegen
 
