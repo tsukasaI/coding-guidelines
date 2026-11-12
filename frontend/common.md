@@ -48,7 +48,8 @@ names the concrete mechanism. For lint/format/pre-commit setup, see
   the framework's caching and Suspense/streaming, and duplicates state the
   data layer already owns. Use the framework's data-loading primitive
   (server loading, a query library, `load`, `createResource` — see the
-  framework guide).
+  framework guide). Sole exception: the single centralized custom hook that
+  `frontend/react.md` allows in a tiny app with no other server-state needs.
 
 ## Injection and global state
 
@@ -67,3 +68,19 @@ names the concrete mechanism. For lint/format/pre-commit setup, see
   role/name), never through internals or implementation details.
 - Fake at the port or network seam (hand-written port fakes, MSW). NEVER mock
   internal components or the framework's own primitives.
+
+## Anti-patterns AI agents produce in frontend code
+
+1. **Business rules in components**: pricing, validation, or state-machine
+   logic written inside a component or framework primitive instead of a plain
+   TS module.
+2. **Mirrored state**: a prop or other state copied into local state and kept
+   in sync by an effect, instead of being derived.
+3. **Fetch-in-effect with hand-rolled loading/error state**, or raw `fetch`
+   with a cast response, bypassing the typed API port and the framework data
+   layer.
+4. **Context or store as a state manager**: server data copied into client
+   state, or one provider holding everything, instead of colocated state.
+5. **Mocking internals in tests**: mocking internal components or framework
+   primitives, or asserting on implementation details, instead of faking at
+   the port or network seam.

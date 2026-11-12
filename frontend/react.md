@@ -92,8 +92,11 @@ react.dev/learn/react-compiler/introduction; react.dev/blog (React Compiler 1.0)
 - Order of preference: (1) the framework's server-side loading (Server
   Components / route loaders); (2) an established async-state library
   (TanStack Query or SWR) for client-side caching, deduplication, and
-  revalidation; (3) only in a tiny dependency-free app, one custom hook that
-  centralizes cancellation and caching — never per-component effects.
+  revalidation; (3) only in a tiny dependency-free app (no framework loader,
+  and a handful of read-only fetches with no mutations to invalidate), one
+  custom hook that centralizes cancellation and caching — never
+  per-component effects. Needing a second hook of this kind means it is time
+  for (2).
 - Mutations invalidate or update the relevant queries at the mutation site;
   do not sprinkle refetch calls through unrelated components.
 
@@ -114,7 +117,9 @@ react.dev/learn/synchronizing-with-effects.
   (`frontend/common.md`).
 - A dedicated client-state store (e.g. Zustand) is a last resort for real
   cross-cutting client state (multi-panel editor state); it holds client
-  state only, never copies of server data.
+  state only, never copies of server data. Such a store is UI state, not a
+  dependency: services and ports are still injected through context, which
+  keeps principles.md's global-state ban intact.
 
 Ref: react.dev/learn/passing-data-deeply-with-context ("Before you use context").
 

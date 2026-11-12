@@ -27,7 +27,8 @@ modules of functions and plain data, not class hierarchies.
 - Enable beyond `strict`: `noUncheckedIndexedAccess` (indexing returns
   `T | undefined`), `exactOptionalPropertyTypes` (absent ≠ explicitly
   `undefined`), `verbatimModuleSyntax` (forces `import type`; emitted modules
-  match source syntax 1:1).
+  match source syntax 1:1), `noImplicitOverride` (overriding members need
+  `override`).
 - Options removed in TS 7 (`baseUrl`, `target: es5`, `moduleResolution: node10`,
   namespaces-as-modules) MUST NOT appear in new configs.
 - Projects whose tooling consumes the TS programmatic API (`typescript-eslint`,
@@ -69,8 +70,8 @@ typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html.
   "Tool status").
 - `tsconfig.json` is itself a mechanical gate: `strict`,
   `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
-  `verbatimModuleSyntax`, and `noImplicitOverride` are enforced by the
-  compiler, not a linter (`templates/tsconfig.json.example`).
+  `verbatimModuleSyntax`, `noImplicitOverride`, and `erasableSyntaxOnly` are
+  enforced by the compiler, not a linter (`templates/tsconfig.json.example`).
 - No oxlint rule enforces "dependencies are function parameters, no DI
   container, no import-time side effects"; that stays code-review-only.
 
@@ -96,7 +97,7 @@ biomejs.dev.
   tree-shaking. Export from the feature root only what other features need.
   (enforced: `oxc/no-barrel-file`, native, no compat-layer plugin needed;
   import-cycle detection itself needs `import/no-cycle` behind oxlint's
-  JS-plugin layer, see Tooling below)
+  JS-plugin layer, see Tooling above)
 
 ## Composition and dependency injection
 
@@ -180,7 +181,10 @@ const UserId = (s: string) => s as UserId;
 - NEVER use TS `enum` or `namespace` in new code: they are non-erasable syntax
   that survives compilation. Use union-of-literals (with a `const` object for
   values) and plain modules. Ambient declarations (`declare global`,
-  `declare module`) are type-only and allowed.
+  `declare module`) are type-only and allowed. (enforced, partial:
+  `erasableSyntaxOnly` in `templates/tsconfig.json.example` rejects `enum`
+  and namespaces that contain runtime code; a types-only namespace passes
+  the compiler and is left to code review.)
 
 Ref: TS Handbook (narrowing, discriminated unions, `satisfies`).
 
@@ -213,7 +217,9 @@ Ref: TS Handbook (narrowing, discriminated unions, `satisfies`).
 // Good: schema is the single source of truth at the edge
 const OrderDraft = z.object({
   userId: z.string().min(1).transform(UserId), // the brand constructor
-  lines: z.array(Line).nonempty(),
+  // zod 4: `z.array(...).nonempty()` is a runtime check only and infers
+  // `Line[]`; the tuple-with-rest form infers `[Line, ...Line[]]`.
+  lines: z.tuple([Line], Line),
 });
 type OrderDraft = z.infer<typeof OrderDraft>;
 ```
