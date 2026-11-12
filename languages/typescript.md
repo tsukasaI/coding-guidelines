@@ -16,9 +16,14 @@ modules of functions and plain data, not class hierarchies.
 
 ## Compiler baseline
 
-- `strict: true`, `module: "esnext"` (or `nodenext` for Node libraries), and
-  an es2025+ target are the TS 6.0 defaults — MUST NOT be weakened. Never set
-  `strict: false` or reintroduce CommonJS output.
+- `strict: true`, an es2025+ target, and ESM `module` are the TS 6.0
+  defaults — MUST NOT be weakened. Never set `strict: false` or reintroduce
+  CommonJS output. Pick the module pair by who consumes the emitted JS:
+  `module: "nodenext"` (implies `moduleResolution: "nodenext"`) for code Node
+  runs directly (services and libraries), `module: "esnext"` +
+  `moduleResolution: "bundler"` for bundled code and frontends (Vite,
+  SvelteKit, Bun, tsx). NEVER use `bundler` for code Node runs directly: it
+  accepts extensionless relative imports that fail at runtime.
 - Enable beyond `strict`: `noUncheckedIndexedAccess` (indexing returns
   `T | undefined`), `exactOptionalPropertyTypes` (absent ≠ explicitly
   `undefined`), `verbatimModuleSyntax` (forces `import type`; emitted modules
@@ -38,7 +43,8 @@ modules of functions and plain data, not class hierarchies.
   comment-on-`as` requirement has no linter, code review still catches it.)
 
 Ref: devblogs.microsoft.com/typescript (6.0 and 7.0 announcements);
-typescriptlang.org/tsconfig.
+typescriptlang.org/tsconfig;
+typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html.
 
 ## Tooling
 
