@@ -3,6 +3,11 @@ paths:
   - "**/*.tsx"
   - "**/*.jsx"
   - "**/*.svelte"
+  - "**/*.svelte.ts"
+  - "**/*.svelte.js"
+  - "**/+*.ts"
+  - "**/+*.js"
+  - "**/hooks.*.ts"
 ---
 
 # Frontend common rules

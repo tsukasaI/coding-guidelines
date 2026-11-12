@@ -4,6 +4,8 @@ paths:
   - "**/*.tsx"
   - "**/*.mts"
   - "**/*.cts"
+  - "**/*.svelte"
+  - "**/tsconfig*.json"
 ---
 
 # TypeScript
