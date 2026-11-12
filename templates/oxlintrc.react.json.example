@@ -7,7 +7,11 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "extends": ["./.oxlintrc.base.json"],
-  "plugins": ["react", "react-perf"],
+  // `react-perf` is deliberately not enabled: its rules sit in the `perf`
+  // category (inherited through `extends`) and demand hoisting/memoizing
+  // inline props, which contradicts frontend/react.md (React Compiler; no
+  // manual useMemo/useCallback/memo).
+  "plugins": ["react"],
   "rules": {
     // React 19+ automatic JSX runtime: no import needed, so this rule
     // (aimed at the classic runtime) is a false positive here.
