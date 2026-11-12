@@ -38,7 +38,7 @@ lefthook.dev/usage/envs/LEFTHOOK/ (`LEFTHOOK`, `LEFTHOOK_EXCLUDE`).
   existing repo) uses `gitleaks dir . -c .gitleaks.toml`.
 - Config lives in `.gitleaks.toml`: `[extend] useDefault = true` to keep
   the built-in rule set, plus project-specific custom `[[rules]]` and an
-  `[allowlist]` for known non-secrets (test fixtures, documented example
+  `[[allowlists]]` entry for known non-secrets (test fixtures, documented example
   keys) — NEVER for a real leaked credential (rotate it instead).
 - Test paths are scanned like any other path: the template allowlists no
   directories or file globs. A dummy value in a test is allowlisted by that
@@ -89,7 +89,10 @@ the row and its date when the fact changes.
 | oxlint type-aware linting (tsgolint) | Stable, announced 2026-07-22 (https://oxc.rs/blog/2026-07-22-type-aware-linting-stable) | 2026-11 |
 | oxfmt | Beta since 2026-02-24; still 0.x (`oxfmt_v0.78.0`, 2026-11-09) (https://github.com/oxc-project/oxc/releases) | 2026-11 |
 | tsgolint | Covers 59/61 of `typescript-eslint`'s type-aware rules (tsgolint README) | 2026-11 |
-| oxc `.svelte` template linting | Not shipped; full framework file-format support is on oxc's 2026 roadmap | 2026 |
+| oxc `.svelte` template linting | Not shipped: only `<script>` blocks are linted (https://oxc.rs/compatibility). The oxlint JS-plugins alpha post says limited support for frameworks' custom file formats is "coming later this year" (https://oxc.rs/blog/2026-03-11-oxlint-js-plugins-alpha); no date for template linting. Formatting `.svelte` is separate (oxfmt, "Framework gaps") | 2026-11 |
+| pgtyped | Last npm release `@pgtyped/cli` 2.4.3 (2025-03-15; https://registry.npmjs.org/@pgtyped/cli). Check upstream activity before adopting in a new project | 2026-11 |
+| rustfmt `hex_literal_case` | Stabilized per upstream changelog, but stable rustfmt 1.10.0 still warns `unstable features are only available in nightly channel`; omit `rustfmt.toml` while it warns | rustfmt 1.10.0 (2026-11-12) |
+| gitleaks version pinning | lefthook runs the `gitleaks` binary found on `PATH` and has no option to install or pin tool binaries (https://lefthook.dev/configuration/); pin the version through the install method (a version-pinning tool such as mise or aqua, a pinned release binary, or a pinned Docker image tag) | 2026-11 |
 | oxlint Solid plugin | No native plugin (oxc `crates/oxc_linter/src/rules` has no `solid` directory); the upstream request oxc-project/oxc#13894 was closed on 2025-11-21. Keep `eslint-plugin-solid` running through ESLint. | 2026-11 |
 | TypeScript 7 | Native compiler, GA July 2026; `latest` is 7.0.2; 7.0 has no stable programmatic API (planned for 7.1, in beta since 2026-10-20); typescript-eslint supports `<6.1.0` | 2026-11 |
 | Biome | Own type-aware inference; has react-hooks-equivalent rules (`useExhaustiveDependencies`, `useHookAtTopLevel`: https://biomejs.dev/linter/rules/use-exhaustive-dependencies/) and Solid and Svelte lint domains (https://biomejs.dev/linter/domains/); Svelte language support is labelled experimental | 2026-11 |

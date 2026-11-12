@@ -34,7 +34,8 @@ Ref: go.dev/doc/modules/layout; Google Go Style Guide (package names).
   `NewServer(cfg Config, store OrderStore) *Server`, and wiring happens in
   `main` (or a `run(ctx, args)` it delegates to). No `init` wiring either.
 - Code-generated wiring (`google/wire`) MAY be considered only when the
-  dependency graph is genuinely too large to wire by hand — and note that
+  dependency graph is too large to wire by hand (say, `run` constructs 30+
+  dependencies and their ordering is a recurring source of edits), and note that
   google/wire itself is archived and unmaintained (`patterns/tooling.md`
   "Tool status"). In practice: restructure the graph before reaching for a
   tool.
@@ -53,10 +54,42 @@ var store = postgres.NewStore(os.Getenv("DSN"))
 
 // Good: composition root wires everything explicitly
 func main() {
-    cfg := config.Load()                    // parse env once, here
-    store := postgres.NewStore(cfg.DSN)
-    srv := api.NewServer(cfg.API, store)    // *Server, concrete
-    log.Fatal(srv.ListenAndServe())
+    if err := run(); err != nil {
+        log.Fatal(err)
+    }
+}
+
+func run() error {
+    ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+    defer stop()
+
+    cfg, err := config.Load() // parse env once, here
+    if err != nil {
+        return fmt.Errorf("load config: %w", err)
+    }
+    store, err := postgres.NewStore(ctx, cfg.DSN)
+    if err != nil {
+        return fmt.Errorf("open store: %w", err)
+    }
+    srv := &http.Server{
+        Addr:              cfg.Addr,
+        Handler:           api.NewServer(cfg.API, store), // *Server, concrete
+        ReadHeaderTimeout: 5 * time.Second,
+        ReadTimeout:       10 * time.Second,
+        WriteTimeout:      30 * time.Second,
+        IdleTimeout:       2 * time.Minute,
+    }
+
+    errc := make(chan error, 1)
+    go func() { errc <- srv.ListenAndServe() }()
+    select {
+    case err := <-errc:
+        return err
+    case <-ctx.Done():
+    }
+    shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+    return srv.Shutdown(shutdownCtx) // timeouts and drain: patterns/http.md
 }
 ```
 
@@ -265,10 +298,10 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
   severity threshold, see "Maximal strictness stance" in
   `patterns/tooling.md`.
 - Suppressions (`//nolint:...`) MUST carry a reason
-  (`//nolint:errcheck // reason`); enforced by `nolintlint` with
-  `require-explanation: true` (the linter's default is `false`, enabling
-  `nolintlint` alone does not require a reason). Why: a suppression
-  without a readable reason cannot be reviewed or expired.
+  (`//nolint:errcheck // reason`). Why: a suppression without a readable
+  reason cannot be reviewed or expired. (enforced: `nolintlint` with
+  `require-explanation: true` set; the linter's default is `false`, so
+  enabling `nolintlint` alone does not require a reason)
 
 Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt.
 

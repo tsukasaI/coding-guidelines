@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 # Check that every rule/job named in an `(enforced: ...)` tag in
-# languages/*.md and frontend/*.md exists in some templates/*.example file.
-# Prints the missing ones and exits 1. Needs bash, grep, perl, tr.
+# languages/*.md, frontend/*.md, patterns/*.md and principles.md exists in
+# some templates/*.example file. Prints the missing ones and exits 1.
+# Needs bash, grep, perl, sed, tr.
+#
+# Names are matched as fixed strings (regex metacharacters in a name are
+# escaped). Comments in the templates are stripped before matching, so a name
+# that only appears in a comment does not count: whole-line `#` / `//`
+# comments, and trailing ` # ...` / ` // ...` comments (the marker must follow
+# whitespace). Known limitation: `/* ... */` block comments are not stripped,
+# and a ` #` or ` //` inside a quoted string is treated as a comment start.
 #
 # Tag formats handled (tags may span lines and contain nested parentheses):
 #   (enforced: `typescript/no-explicit-any` in `templates/...`)
@@ -53,22 +61,28 @@ default_group_clippy() {
   return 1
 }
 
-in_templates() { grep -qE "$1" templates/*.example; }
+# Template contents with comments removed (see the header for the limits).
+TEMPLATES=$(perl -pe 's{^\s*(?:\#|//).*$}{}; s{(?<=\s)(?:\#|//).*$}{}' templates/*.example)
+
+in_templates() { grep -qE -- "$1" <<<"$TEMPLATES"; }
+
+# Escape ERE metacharacters so a rule name is matched literally.
+re_escape() { printf '%s' "$1" | sed 's/[][\.*^$+?(){}|/-]/\\&/g'; }
 
 exists() {
   local tok=$1 rule
   case $tok in
     revive.*)
-      rule=${tok#revive.}
-      in_templates "name: ${rule}\$|name: ${rule}[[:space:]]" ;;
+      rule=$(re_escape "${tok#revive.}")
+      in_templates "name: ${rule}([[:space:]]|\$)" ;;
     clippy::*)
       rule=${tok#clippy::}
       default_group_clippy "$rule" ||
-        in_templates "^(${rule}|${rule//_/-})[[:space:]]*=" ;;
+        in_templates "^($(re_escape "$rule")|$(re_escape "${rule//_/-}"))[[:space:]]*=" ;;
     */*)
-      in_templates "\"${tok}\"" ;;
+      grep -qF -- "\"${tok}\"" <<<"$TEMPLATES" ;;
     *)
-      grep -qFw -- "$tok" templates/*.example ;;
+      grep -qFw -- "$tok" <<<"$TEMPLATES" ;;
   esac
 }
 
@@ -79,7 +93,7 @@ missing=0
 checked=0
 tags=0
 
-for f in languages/*.md frontend/*.md; do
+for f in languages/*.md frontend/*.md patterns/*.md principles.md; do
   # Join lines so multi-line tags match, then pull out balanced (enforced...).
   while IFS= read -r tag; do
     [[ -z $tag ]] && continue
