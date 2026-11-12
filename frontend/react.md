@@ -15,7 +15,8 @@ TypeScript strict, function components only.
   nested functions.
 
 Lint: React projects use `templates/oxlintrc.react.json.example` (adds the
-`react` and `react-perf` oxlint plugins on top of the TypeScript base).
+`react` oxlint plugin on top of the TypeScript base; `react-perf` is left
+off because the compiler makes its memoization demands moot).
 
 Ref: react.dev/reference/rules.
 

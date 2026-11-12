@@ -167,8 +167,11 @@ with oxlint + tsgolint and use TS 7.
    floods the diff with unrelated warnings and buries the ones that matter.
    Exception, by decision: the TypeScript template enables oxlint's
    `pedantic`, `perf` and `style` categories as a whole
-   (`templates/oxlintrc.json.example`). A rule there that proves noisy is
-   turned off individually in that file with a reason; the category stays.
+   (`templates/oxlintrc.json.example`). The template keeps the categories at
+   `error` and turns off, rule by rule with a reason, those that reject code
+   the guides present as Good; a further noisy rule gets the same treatment,
+   the category stays. The React template does not enable `react-perf`: its
+   rules would demand manual memoization the React Compiler makes unnecessary.
 3. **Allowlisting a real leaked secret** in `.gitleaks.toml` instead of
    rotating the credential. An allowlist entry is for known non-secrets,
    never for "this one is fine because it's already committed."
