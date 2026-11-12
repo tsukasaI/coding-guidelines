@@ -47,6 +47,23 @@
     "eslint/no-ternary": "off",
     // Would reject `null` in state types (e.g. `User | null` in svelte.md).
     "unicorn/no-null": "off",
+    // Would reject a type and its schema/constructor sharing one name
+    // (`type UserId` + `const UserId`); tsc already rejects real redeclarations.
+    "eslint/no-redeclare": "off",
+    // Would reject consecutive `const` lines (the composition-root example).
+    "eslint/one-var": "off",
+    // Would reject method signatures in port interfaces (`OrderRepo`).
+    "typescript/method-signature-style": "off",
+    // Would reject one-line `case "card": return 30;`.
+    "unicorn/switch-case-braces": "off",
+    // Would reject nearly every parameter whose type is not deeply readonly.
+    "typescript/prefer-readonly-parameter-types": "off",
+    // Allow `onClick={() => f()}`; other void-expression misuse still fails.
+    "typescript/no-confusing-void-expression": ["error", { "ignoreArrowShorthand": true }],
+    // Component files are PascalCase (`OrderForm.tsx`); others kebab-case.
+    "unicorn/filename-case": ["error", { "cases": { "kebabCase": true, "pascalCase": true } }],
+    // typescript/no-unsafe-type-assertion stays on: it enforces the no-cast
+    // rule. The brand constructor (typescript.md) carries the one disable.
 
     // enforced: typescript.md "no barrel files that re-export the world"
     // native oxc rule, no compat-layer plugin needed. A genuine large index

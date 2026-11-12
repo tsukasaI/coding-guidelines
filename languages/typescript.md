@@ -157,6 +157,7 @@ type UserId = Brand<string, "UserId">;
 
 // The single sanctioned bare `as`: a brand has no runtime representation,
 // so the one constructor per brand is the only place a cast can live.
+// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- brand constructor
 const UserId = (s: string) => s as UserId;
 ```
 
