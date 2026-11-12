@@ -257,10 +257,8 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
 - v2 merged `gosimple` and `stylecheck` into `staticcheck`; do not enable
   them separately. `staticcheck` does NOT default to its full check set,
   `settings.staticcheck.checks: ["all"]` must be explicit.
-- `linters.settings.govet.enable: [shadow]` catches shadowed variables, but the
-  shadow analyzer is known to false-positive on common Go error-handling
-  patterns (golangci-lint#1008). Keep it enabled anyway per the maximal-
-  strictness stance; suppress individual false positives with
+- `linters.settings.govet.enable: [shadow]` catches shadowed variables. Keep it
+  enabled per the maximal-strictness stance; suppress a single case with
   `//nolint:govet` plus a reason (see `nolintlint` below), don't disable
   the check.
 - The pre-commit hook fails on any reported issue, not just ones above a
@@ -272,8 +270,7 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
   `nolintlint` alone does not require a reason). Why: a suppression
   without a readable reason cannot be reviewed or expired.
 
-Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt;
-github.com/golangci/golangci-lint/issues/1008 (govet shadow false positives).
+Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt.
 
 ## Anti-patterns AI agents produce in Go
 
