@@ -2,12 +2,35 @@
 // "module"` in package.json, or use the `.mjs` extension).
 // Why this file exists: oxlint doesn't lint `.svelte` template syntax yet
 // (patterns/tooling.md "Framework gaps"). Drop it once oxc ships support.
-// ESLint/svelte-check consume the TS API, so a project using this file MUST
-// stay on TypeScript 6.x (patterns/tooling.md "TypeScript version vs.
-// TS-API tools"); pin `typescript` to ^6 (see the install line below).
+// Script blocks are TypeScript (`<script lang="ts">`), so `typescript-eslint`
+// is the parser for them; it and svelte-check consume the TS API, so a
+// project using this file MUST stay on TypeScript 6.x (patterns/tooling.md
+// "TypeScript version vs. TS-API tools"); pin `typescript` to ^6 (see the
+// install line below).
+// Shape follows the eslint-plugin-svelte user guide, "TypeScript project":
+// https://sveltejs.github.io/eslint-plugin-svelte/user-guide/
+// (the guide's `@eslint/js` and `globals` entries are left out: this file
+// only closes the Svelte lint gap, and oxlint owns the rest).
 //
-// npm install -D eslint eslint-plugin-svelte svelte typescript@6
+// npm install -D eslint eslint-plugin-svelte typescript-eslint svelte typescript@6
 
 import svelte from "eslint-plugin-svelte";
+import { defineConfig } from "eslint/config";
+import ts from "typescript-eslint";
+import svelteConfig from "./svelte.config.js";
 
-export default [...svelte.configs["flat/recommended"]];
+export default defineConfig(
+  ts.configs.recommended,
+  svelte.configs.recommended,
+  {
+    files: ["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        extraFileExtensions: [".svelte"],
+        parser: ts.parser,
+        svelteConfig,
+      },
+    },
+  },
+);
