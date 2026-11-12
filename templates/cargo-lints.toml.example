@@ -25,7 +25,8 @@ dbg_macro = "warn"
 todo = "warn"
 unimplemented = "warn"
 
-# module_name_repetitions: pedantic, catches `order::OrderService` stutter.
+# module_name_repetitions: restriction (moved from pedantic in clippy 1.84),
+# catches `order::OrderService` stutter.
 module_name_repetitions = "warn"
 # print_stdout / print_stderr: restriction, library and service code should
 # log, not print. A CLI binary's user-facing output goes through one output
@@ -43,6 +44,10 @@ indexing_slicing = "warn"
 allow_attributes = "warn"
 allow_attributes_without_reason = "warn"
 
+# clone_on_ref_ptr: restriction, `Arc::clone(&x)` so shared-pointer clones
+# read differently from deep copies.
+clone_on_ref_ptr = "warn"
+
 # redundant_clone lives in the nursery group (unstable: known false
 # positive/negative reports), cherry-picked individually per the
 # no-blanket-nursery rule above, not because it's especially reliable.
@@ -58,9 +63,6 @@ fn_params_excessive_bools = "warn"
 ref_option = "warn"
 # needless_for_each: pedantic, a `for` loop instead of `Iterator::for_each`.
 needless_for_each = "warn"
-# clone_on_ref_ptr: restriction, `Arc::clone(&x)` so shared-pointer clones
-# read differently from deep copies.
-clone_on_ref_ptr = "warn"
 # string_add: restriction, `format!`/`push_str` instead of `String + &str`.
 string_add = "warn"
 # undocumented_unsafe_blocks: restriction, every `unsafe` block carries a
