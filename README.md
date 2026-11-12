@@ -48,6 +48,15 @@ an AI agent behaves (permissions, git workflow, review process, precedence
 when existing code violates a rule here) belongs to the agent's own
 configuration, and this repo does not restate it.
 
+Deliberate exceptions, kept here because each is inseparable from the code
+rule it qualifies:
+
+- The hook-bypass policy in `patterns/tooling.md` (humans only, never
+  agents): it defines what "hooks are a zero-warnings gate" means.
+- The requester-communication clauses of the reuse ladder in `principles.md`
+  ("name what you skipped" and "anything the requester explicitly asked
+  for"): they bound what the ladder may cut.
+
 **Humans** — read `principles.md` end to end once; treat the guide files as
 lookup references. Language files cover project layout, composition/DI, domain
 modelling, error handling, and testing; frontend files cover component
