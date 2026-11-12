@@ -90,6 +90,7 @@ the row and its date when the fact changes.
 | TypeScript 7 | Native compiler, GA July 2026; 7.0 has no stable programmatic API (planned for 7.1) | 2026-07 |
 | Biome | Own type-aware inference, but Svelte support is beta, no Solid, no react-hooks-equivalent rules | undated |
 | google/wire | Archived, unmaintained | 2025-08 |
+| clippy `allow-*-in-tests` keys | Cover in-crate `#[cfg(test)]` code and `#[test]` fns incl. in `tests/`; not non-test helpers in `tests/`, `examples/`, `benches/` (rust-clippy#13981). Re-check after rust-clippy#16786 reaches stable | clippy 0.1.93 |
 
 ### TypeScript version vs. TS-API tools
 
