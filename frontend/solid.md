@@ -2,7 +2,7 @@
 
 Specializes `principles.md`, `languages/typescript.md`, and
 `frontend/common.md` for Solid.
-Baseline: solid-js 1.9+ (Solid 2.0 is still beta — do not target it),
+Baseline: solid-js 1.9+ (2.0 is a release candidate; this guide targets 1.9),
 TypeScript strict.
 
 The one mental model that prevents most bugs: **components run once**. There
@@ -87,7 +87,7 @@ Ref: docs.solidjs.com/concepts/derived-values/memos, /concepts/effects.
 ## Data fetching
 
 - Async data goes through `createResource` (or the framework's loader —
-  SolidStart route `load`/`query`): it ties the request to a source signal,
+  SolidStart route `preload`/`query`): it ties the request to a source signal,
   re-fetches when it changes, and integrates with `<Suspense>` and
   `<ErrorBoundary>`.
 - No fetch inside `createEffect` (`frontend/common.md`); the docs position

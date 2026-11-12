@@ -70,8 +70,8 @@ carve-out `typescript-eslint` would need (see "TypeScript version vs.
 TS-API tools" below). Use `strict-type-checked` + `stylistic-type-checked`
 as the reference severity bar for "maximal strictness". The oxlint
 ESLint-plugin compatibility layer is unproven: treat it as not
-load-bearing. Biome has its own type-aware inference but the same
-framework-coverage gaps as oxlint, so it is the fallback if oxlint's
+load-bearing. Biome has its own type-aware inference and framework
+lint domains (see "Tool status"), so it is the fallback if oxlint's
 plugin layer proves unstable for a project — not a co-equal default.
 Maturity, coverage numbers, and dates are in "Tool status"; re-check them on
 version bumps, same as the config-schema caveat in the oxlint template.
@@ -83,15 +83,16 @@ the row and its date when the fact changes.
 
 | Tool | Status | As of |
 |---|---|---|
-| gitleaks | Core binary is MIT OSS (only the `gitleaks-action` wrapper became source-available in v2.0.0, irrelevant when the binary is invoked directly). Original creator announced he no longer has full control of the repo/brand and launched **Betterleaks** as successor (Aikido Security-sponsored, MIT, verified drop-in: `.gitleaks.toml`, `.gitleaksignore`, CLI flags carry over unmodified). gitleaks itself is "stable, security-patches only." | 2026-03 |
+| gitleaks | Core binary is MIT OSS (only the `gitleaks-action` wrapper became source-available in v2.0.0, irrelevant when the binary is invoked directly). gitleaks itself is feature-complete and receives security patches only; its successor is **Betterleaks** (source: gitleaks README, https://github.com/gitleaks/gitleaks). | 2026-11 |
 | gitleaks `detect`/`protect` | Deprecated (hidden from `--help`, still functional) in favor of `git`/`dir`/`stdin` | v8.19.0 |
 | oxlint JS-plugin layer (ESLint v9+ plugin API) | Alpha; existing plugins "should mostly work"; the `import` plugin (`import/no-cycle`) stays behind it | 2026-03 |
-| oxfmt, type-aware lint path | Still maturing; Q3 2026 is oxc's target for full stabilization; some reports of memory pressure on very large monorepos | 2026 (target Q3) |
-| tsgolint | Covers 59/61 of `typescript-eslint`'s type-aware rules | undated |
+| oxlint type-aware linting (tsgolint) | Stable, announced 2026-07-22 (https://oxc.rs/blog/2026-07-22-type-aware-linting-stable) | 2026-11 |
+| oxfmt | Beta since 2026-02-24; still 0.x (`oxfmt_v0.78.0`, 2026-11-09) (https://github.com/oxc-project/oxc/releases) | 2026-11 |
+| tsgolint | Covers 59/61 of `typescript-eslint`'s type-aware rules (tsgolint README) | 2026-11 |
 | oxc `.svelte` template linting | Not shipped; full framework file-format support is on oxc's 2026 roadmap | 2026 |
-| oxlint Solid plugin | None; open, unresolved upstream discussion | undated |
-| TypeScript 7 | Native compiler, GA July 2026; 7.0 has no stable programmatic API (planned for 7.1) | 2026-07 |
-| Biome | Own type-aware inference, but Svelte support is beta, no Solid, no react-hooks-equivalent rules | undated |
+| oxlint Solid plugin | No native plugin (oxc `crates/oxc_linter/src/rules` has no `solid` directory); the upstream request oxc-project/oxc#13894 was closed on 2025-11-21. Keep `eslint-plugin-solid` running through ESLint. | 2026-11 |
+| TypeScript 7 | Native compiler, GA July 2026; `latest` is 7.0.2; 7.0 has no stable programmatic API (planned for 7.1, in beta since 2026-10-20); typescript-eslint supports `<6.1.0` | 2026-11 |
+| Biome | Own type-aware inference; has react-hooks-equivalent rules (`useExhaustiveDependencies`, `useHookAtTopLevel`: https://biomejs.dev/linter/rules/use-exhaustive-dependencies/) and Solid and Svelte lint domains (https://biomejs.dev/linter/domains/); Svelte language support is labelled experimental | 2026-11 |
 | google/wire | Archived, unmaintained | 2025-08 |
 
 ### TypeScript version vs. TS-API tools
