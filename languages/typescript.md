@@ -107,8 +107,8 @@ export const db = new Pool({ connectionString: process.env.DB_URL });
 
 // Good: factory takes a deps object; main wires it
 export interface OrderRepo {
-  byId(id: OrderId): Promise<Order | undefined>;
-  save(order: Order): Promise<void>;
+  byId(id: OrderId): Promise<Result<Order | undefined, RepoError>>;
+  save(order: Order): Promise<Result<void, RepoError>>;
 }
 
 export function makeCheckout(deps: { repo: OrderRepo; clock: () => Date }) {
@@ -173,9 +173,20 @@ Ref: TS Handbook (narrowing, discriminated unions, `satisfies`).
 
 ## Boundaries and validation
 
-- Every I/O boundary (HTTP body, query params, env, DB rows, queue messages,
-  third-party API responses) MUST be parsed with a schema library (zod 4 or
-  valibot 1) into a typed value. `JSON.parse(...) as Foo` is a lie, not a parse.
+- Every I/O boundary MUST be parsed into a typed value. What counts as the
+  parse depends on whether the input is untrusted. `JSON.parse(...) as Foo` is
+  a lie, not a parse.
+  - Untrusted input (HTTP bodies and query params, env, queue messages,
+    third-party API responses, including `openapi-fetch` responses from a
+    third party): runtime schema validation, either a schema library (zod 4
+    or valibot 1) or the framework's own schema validation. A Fastify route
+    whose JSON schema validates the request needs no extra schema; an
+    `openapi-fetch` response from a third party does, because its generated
+    type only states what the wire promised.
+  - Sources the project controls and checks at build time (e.g. pgtyped rows
+    typed against the project's own DB schema): the generated type is the wire
+    type and the domain constructor/parse function is the parse; no extra
+    schema is needed (`patterns/codegen.md`).
 - Derive static types from schemas (`z.infer`) so the runtime check and the
   type can't drift apart.
 - Parse with `safeParse` (or the valibot equivalent) and translate failures
@@ -204,6 +215,8 @@ type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };
 type CheckoutError =
   | { kind: "out_of_stock"; sku: string }
   | { kind: "payment_declined" };
+// The port's error union (see `OrderRepo`): adapters map driver errors into it.
+type RepoError = { kind: "conflict" } | { kind: "storage"; cause: unknown };
 ```
 
 - `throw` is reserved for bugs and unrecoverable states; edge frameworks that
