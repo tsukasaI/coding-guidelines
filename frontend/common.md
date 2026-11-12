@@ -28,11 +28,15 @@ names the concrete mechanism. For lint/format/pre-commit setup, see
 ## Derive, don't sync
 
 - Anything computable from props or other state MUST be derived, not stored.
-  NEVER mirror props into state, and NEVER use a reactive side-effect
-  primitive (`useEffect`, `$effect`, `createEffect`) to write one piece of
-  state from another. Why: a synced copy lags one update behind and creates
-  two sources of truth. The framework guide names the derivation primitive
-  (render-time computation, `$derived`, a function or `createMemo`).
+  NEVER keep a copy of a prop in state to stay in sync with it, and NEVER use
+  a reactive side-effect primitive (`useEffect`, `$effect`, `createEffect`)
+  to write one piece of state from another. Why: a synced copy lags one
+  update behind and creates two sources of truth. The framework guide names
+  the derivation primitive (render-time computation, `$derived`, a function
+  or `createMemo`).
+- Exception: a deliberately detached seed read once (an edit-form draft).
+  Name the prop `initialX`/`defaultX` and reset the state with `key`, not an
+  effect.
 
 ## Data fetching
 
@@ -53,7 +57,9 @@ names the concrete mechanism. For lint/format/pre-commit setup, see
   sanctions this as explicit wiring. Context is not a state manager.
 - Colocate state in the lowest component/primitive that owns it; lift only
   when genuinely shared. Server data stays in the data layer's cache — NEVER
-  copy it into client state or a store.
+  copy it into client state or a store to display it. Exception: an editable
+  draft or optimistic value that is meant to diverge until saved; keep it
+  local and discard it on success.
 
 ## Testing
 

@@ -51,7 +51,9 @@ func (s *PgStore) PlaceOrder(ctx context.Context, o order.Order) error {
 ## Migrations
 
 - Migrations are versioned SQL files, committed to VCS, forward-only. NEVER
-  edit a migration that has been applied anywhere; write a new one.
+  edit a migration that has been applied; write a new one. Treat a migration
+  as applied once it is merged to the default branch or run against any
+  shared database; one that exists only on an unmerged branch may be edited.
 - One schema change per migration, named for its intent.
 - Zero-downtime changes follow expand–contract: add the new column/table,
   dual-write, backfill, switch reads, then drop the old one — each step its

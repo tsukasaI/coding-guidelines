@@ -28,8 +28,9 @@ adapted to the borrow checker, never translated from OO.
   `order_book.rs`). Non-leaf modules hold only `mod` declarations and
   re-exports, not API implementations.
 - Imports: NEVER use glob imports (`use foo::*`) except `use super::*` in an
-  inline `mod tests`, and `pub use child::*` re-exports in a non-leaf module
-  (enforced: `clippy::wildcard_imports`, which exempts exactly those two).
+  inline `mod tests`, `pub use child::*` re-exports in a non-leaf module, and
+  a crate's documented `prelude` module (`use proptest::prelude::*`)
+  (enforced: `clippy::wildcard_imports`, which exempts exactly these three).
   Keep one module per `use` statement (no `::` inside `{..}`). Import traits
   inside the function that uses them unless the whole file does.
 - Call free functions through their module (`mem::swap(..)`, `fs::read(..)`);
@@ -367,8 +368,10 @@ and how to write documentation).
   `pre-push` job (`templates/lefthook.yml.example`, `patterns/tooling.md`).
 - The current cherry-pick set (`templates/cargo-lints.toml.example`) adds:
   `module_name_repetitions` (module-name stutter, mirrors go.md's
-  `revive.exported`), `print_stdout`/`print_stderr` (production code
-  logs, it doesn't print), `wildcard_imports`, `indexing_slicing`
+  `revive.exported`), `print_stdout`/`print_stderr` (library and
+  service code logs instead of printing; a CLI binary's user-facing output
+  goes through one output module with `#[expect(clippy::print_stdout, reason
+  = "...")]` there), `wildcard_imports`, `indexing_slicing`
   (`v[i]` panics on out-of-bounds; prefer `.get()`), and
   `allow_attributes`/`allow_attributes_without_reason` (forces
   `#[expect(lint, reason = "...")]` over a bare `#[allow(lint)]`, so every
