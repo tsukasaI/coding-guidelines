@@ -29,7 +29,8 @@ with a reference line.
 | Setting up OpenAPI/SQL codegen | `patterns/codegen.md` + the language file |
 | Setting up or auditing lint/format/pre-commit tooling | `patterns/tooling.md` + the language file(s) |
 
-When several rows match, use the most specific one. Do not load all files at
+When several rows match, load the union of the matching rows; a more specific
+row replaces the general one it extends. Do not load all files at
 once; each language file is self-contained on top of `principles.md`. See
 `templates/CLAUDE.md.example` for how a project should reference this repo.
 

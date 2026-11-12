@@ -9,7 +9,12 @@ Specializes `principles.md`, `languages/typescript.md`, and
 `frontend/common.md` for Svelte.
 Baseline: Svelte 5 with runes (+ SvelteKit for apps), TypeScript strict.
 Svelte 4 syntax — `export let`, `$:` reactive statements, store-first state,
-slots — MUST NOT be written in new code; it appears below only as "do not use".
+slots — MUST NOT be written in new components; it appears below only as "do
+not use". A component is runes or legacy as a whole (the two cannot be mixed
+in one file): in an existing legacy component keep its syntax for a small fix
+or migrate the whole file, never mix.
+
+Ref: svelte.dev/docs/svelte/legacy-overview.
 
 Lint gap: keep `eslint-plugin-svelte` running (`templates/eslint.svelte.config.example`;
 rationale in `patterns/tooling.md` "Framework gaps").

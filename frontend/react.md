@@ -73,12 +73,15 @@ useEffect(() => { setDraft(""); setError(null); }, [userId]);
   external systems (subscriptions, imperative widgets, analytics).
 - Verify the React Compiler is actually enabled (babel/vite plugin or the
   framework's flag) before applying this rule. With the compiler: do NOT
-  write `useMemo`/`useCallback`/`memo` in new code unless profiling shows the
-  compiler needs help. Without it: memoize what you have measured. Never
-  strip existing memoization without measuring.
+  add `useMemo`/`useCallback`/`memo` to new code by default. Use them when a
+  value must stay referentially stable (an Effect dependency, or a consumer
+  outside the compiler that compares identity) or when profiling shows a
+  hot path the compiler missed. Without it: memoize what you have measured.
+  Never strip existing memoization without measuring.
 
 Ref: react.dev/learn/you-might-not-need-an-effect;
-react.dev/learn/choosing-the-state-structure; react.dev/blog (React Compiler 1.0).
+react.dev/learn/choosing-the-state-structure;
+react.dev/learn/react-compiler/introduction; react.dev/blog (React Compiler 1.0).
 
 ## Data fetching
 
@@ -145,7 +148,9 @@ event-handler or async errors).
    library through the API port.
 3. **Manual memoization reflex**: wrapping every value in `useMemo`, every
    function in `useCallback`, every component in `memo`. The compiler does
-   this; unmeasured manual memoization is noise that can block better output.
+   this; memoization added without a stability need (Effect dependency,
+   identity-comparing consumer) or a profiled hot path is noise that can
+   block better output.
 4. **Monolithic page components**: 400-line components mixing data fetching,
    domain rules, and markup with a dozen `useState`s. Extract hooks and plain
    TS modules; split by responsibility.

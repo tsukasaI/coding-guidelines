@@ -31,7 +31,8 @@ modules of functions and plain data, not class hierarchies.
   projects, linted by oxlint + tsgolint, use TS 7. See `patterns/tooling.md`
   "TypeScript version vs. TS-API tools".
 - `any` is banned in first-party code; use `unknown` and narrow. `as` casts
-  need a comment justifying why narrowing is impossible. (enforced:
+  need a comment justifying why narrowing is impossible; `as const` and
+  `satisfies` are not casts. (enforced:
   `typescript/no-explicit-any` in `templates/oxlintrc.json.example`; the
   comment-on-`as` requirement has no linter, code review still catches it.)
 
@@ -99,7 +100,9 @@ biomejs.dev.
   construct their own dependencies on import, and import-time side effects.
 - Ports are TypeScript interfaces (or object types).
 - Config is parsed once at the entry file into a typed object; `process.env`
-  MUST NOT appear outside it.
+  MUST NOT appear in application source outside it; tool config files
+  (`vite.config.ts`, `playwright.config.ts`) and test setup are not
+  application source.
 
 ```ts
 // Bad: module constructs its own deps at import time
@@ -167,7 +170,8 @@ const UserId = (s: string) => s as UserId;
   inferred type.
 - NEVER use TS `enum` or `namespace` in new code: they are non-erasable syntax
   that survives compilation. Use union-of-literals (with a `const` object for
-  values) and plain modules.
+  values) and plain modules. Ambient declarations (`declare global`,
+  `declare module`) are type-only and allowed.
 
 Ref: TS Handbook (narrowing, discriminated unions, `satisfies`).
 
