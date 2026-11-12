@@ -94,6 +94,7 @@ the row and its date when the fact changes.
 | TypeScript 7 | Native compiler, GA July 2026; `latest` is 7.0.2; 7.0 has no stable programmatic API (planned for 7.1, in beta since 2026-10-20); typescript-eslint supports `<6.1.0` | 2026-11 |
 | Biome | Own type-aware inference; has react-hooks-equivalent rules (`useExhaustiveDependencies`, `useHookAtTopLevel`: https://biomejs.dev/linter/rules/use-exhaustive-dependencies/) and Solid and Svelte lint domains (https://biomejs.dev/linter/domains/); Svelte language support is labelled experimental | 2026-11 |
 | google/wire | Archived, unmaintained | 2025-08 |
+| clippy `allow-*-in-tests` keys | Cover in-crate `#[cfg(test)]` code and `#[test]` fns incl. in `tests/`; not non-test helpers in `tests/`, `examples/`, `benches/` (rust-clippy#13981). Re-check after rust-clippy#16786 reaches stable | clippy 0.1.93 |
 
 ### TypeScript version vs. TS-API tools
 

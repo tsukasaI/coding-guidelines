@@ -409,21 +409,21 @@ and how to write documentation).
   (not via a blanket `clippy::nursery`) because it directly targets the
   `.clone()`-to-silence-the-borrow-checker anti-pattern below, treat a hit
   as a design signal to check, same as any nursery lint's noisier output.
-- `unwrap_used`/`expect_used`/`dbg_macro`/`print_stdout`/`print_stderr`
-  denies would also fire inside `#[cfg(test)]` code without
+- `unwrap_used`/`expect_used`/`indexing_slicing`/`dbg_macro`/`print_stdout`/
+  `print_stderr` denies would also fire inside `#[cfg(test)]` code without
   `templates/clippy.toml.example`'s `allow-*-in-tests` keys. Those keys
-  cover both in-crate `#[cfg(test)]` modules and `#[test]` functions in
-  `tests/`; a non-test helper function in `tests/`, plus anything in
-  `examples/` or `benches/`, is NOT covered (open upstream issue
-  rust-clippy#13981) and stays subject to the deny, same as any other
-  caller of the public API.
+  cover in-crate `#[cfg(test)]` code and `#[test]` functions, including
+  those in `tests/`; non-test helpers in `tests/`, and `examples/` and
+  `benches/`, stay subject to the deny. The template holds the observed
+  behaviour and the clippy version it was observed on.
 - No clippy lint exists for the `Rc<RefCell<T>>`-object-graph or
   crate-wide-mega-error-enum anti-patterns below; both stay code-review-only.
 
 Ref: doc.rust-lang.org/clippy (lint groups, `[lints]` table);
 rust-lang.github.io/rustfmt (option stability); rustsec.org;
 github.com/EmbarkStudios/cargo-deny; github.com/rust-lang/rust-clippy/issues/13981
-(clippy.toml test-scoping keys don't cover tests/examples/benches).
+(clippy.toml test-scoping keys skip non-test helpers in tests/, and
+examples/, benches/).
 
 ## Anti-patterns AI agents produce in Rust
 
