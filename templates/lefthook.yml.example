@@ -4,59 +4,93 @@
 #
 # The language-specific jobs below are glob-scoped and no-op harmlessly if
 # that language isn't present in the project — keep only the ones you need.
+# Node tools run through `npx --no --`, so a missing devDependency fails the
+# hook instead of downloading an unpinned release (patterns/tooling.md pins
+# lint-tool versions).
+
+# 1.10.2: first release with both `jobs` groups and `lefthook validate`.
+min_version: 1.10.2
 
 pre-commit:
   parallel: true
-  commands:
-    gitleaks:
+  jobs:
+    - name: gitleaks
       run: gitleaks git --staged --redact
 
-    go-format:
-      # -w + stage_fixed auto-fix instead of failing: a deliberate exception
-      # to the zero-warnings gate (patterns/tooling.md "Maximal strictness
-      # stance"). gofumpt's rewrite is deterministic and semantics-free, so
-      # auto-fixing loses nothing.
+    - name: go
+      # piped: go-format finishes before go-lint reads the files. gofumpt is
+      # also a golangci-lint formatter (templates/golangci.yml.example), so in
+      # parallel the linter could fail on a file the formatter is fixing.
       glob: "*.go"
-      run: gofumpt -l -w {staged_files}
-      stage_fixed: true
-    go-lint:
-      glob: "*.go"
-      run: golangci-lint run --config .golangci.yml {staged_files}
-    go-layout-ban:
+      group:
+        piped: true
+        jobs:
+          - name: go-format
+            # -w + stage_fixed auto-fix instead of failing: a deliberate
+            # exception to the zero-warnings gate (patterns/tooling.md
+            # "Maximal strictness stance"). gofumpt's rewrite is deterministic
+            # and semantics-free, so auto-fixing loses nothing.
+            run: gofumpt -l -w {staged_files}
+            stage_fixed: true
+          - name: go-lint
+            # No file arguments: golangci-lint analyses whole packages, and
+            # files from several packages fail ("named files must all be in
+            # one directory"). --new-from-rev HEAD reports only issues in the
+            # change being committed.
+            run: golangci-lint run --config .golangci.yml --new-from-rev HEAD
+    - name: go-layout-ban
       # go.md "NEVER create a pkg/ directory" — depguard bans import paths,
       # not directory names, so this is a plain glob-triggered shell job.
-      # Also catches a nested pkg/ (internal/pkg/, cmd/pkg/), not just root.
+      # Only newly ADDED files fail (files: below): a project adopting this
+      # template with an existing pkg/ can still commit inside it until it
+      # migrates. Also catches a nested pkg/ (internal/pkg/, cmd/pkg/).
+      files: git diff --cached --name-only --diff-filter=A
       glob: "{pkg,**/pkg}/**"
       run: >
         echo "layout-ban: pkg/ is not part of the official Go layout (see
         languages/go.md Project layout); use internal/ or a domain-named
-        package" >&2 && exit 1
+        package: {files}" >&2 && exit 1
 
-    rust-format:
+    - name: rust-format
       glob: "*.rs"
       run: cargo fmt -- --check
-    rust-lint:
-      glob: "*.rs"
+    - name: rust-lint
+      # Cargo.toml and clippy.toml hold the lint levels, so changing them
+      # re-runs clippy too.
+      glob: "{*.rs,Cargo.toml,**/Cargo.toml,clippy.toml,**/clippy.toml}"
       run: cargo clippy --all-targets -- -D warnings
 
-    ts-format:
+    - name: ts-format
       # oxfmt covers .svelte too, given .oxfmtrc.json's `svelte: true`
-      glob: "*.{ts,tsx,svelte}"
-      run: npx oxfmt -c .oxfmtrc.json --check {staged_files}
-    ts-lint:
-      glob: "*.{ts,tsx}"
+      glob: "*.{ts,tsx,mts,cts,svelte}"
+      run: npx --no -- oxfmt -c .oxfmtrc.json --check {staged_files}
+    - name: ts-lint
+      glob: "*.{ts,tsx,mts,cts,svelte}"
       # --type-aware is required for no-floating-promises and
-      # switch-exhaustiveness-check (needs the oxlint-tsgolint devDependency)
+      # switch-exhaustiveness-check (needs the oxlint-tsgolint devDependency).
+      # --type-check also reports TypeScript compiler errors, so tsconfig.json
+      # is a real gate (languages/typescript.md). Projects pinned to TS 6.x
+      # (Svelte, Solid) add a separate `npx --no -- tsc --noEmit` or
+      # `npx --no -- svelte-check` job instead.
       # --deny-warnings: a rule downgraded to "warn" must still fail the hook
-      run: npx oxlint --type-aware --deny-warnings -c .oxlintrc.json {staged_files}
-    ts-layout-ban:
+      run: npx --no -- oxlint --type-aware --type-check --deny-warnings -c .oxlintrc.json {staged_files}
+    - name: eslint
+      # Svelte and Solid projects only: eslint-plugin-svelte /
+      # eslint-plugin-solid stay on ESLint (patterns/tooling.md "Framework
+      # gaps"). Delete this job in other projects.
+      glob: "{*.svelte,*.svelte.ts,*.svelte.js,*.tsx,*.jsx}"
+      run: npx --no -- eslint --max-warnings 0 {staged_files}
+    - name: ts-layout-ban
       # typescript.md "group by domain feature, not by kind" — no linter
       # covers directory naming, so this is a plain glob-triggered shell job.
-      # Also catches a nested src/ (monorepo packages/*/src/utils/, etc).
+      # Only newly ADDED files fail, as in go-layout-ban. Also catches a
+      # nested src/ (monorepo packages/*/src/utils/, etc).
+      files: git diff --cached --name-only --diff-filter=A
       glob: "{src,**/src}/{types,interfaces,utils}/**"
       run: >
         echo "layout-ban: group by domain feature (src/order/, src/billing/),
-        not by kind (see languages/typescript.md Project layout)" >&2 && exit 1
+        not by kind (see languages/typescript.md Project layout): {files}" >&2
+        && exit 1
 
 # CI-only checks. Projects WITHOUT CI MUST run these from pre-push instead
 # (patterns/tooling.md "Maximal strictness stance"); projects with CI can
@@ -79,4 +113,9 @@ pre-commit:
 #     # Spec lint (patterns/codegen.md), e.g. spectral:
 #     # openapi-lint:
 #     #   glob: "openapi/**"
-#     #   run: npx spectral lint openapi/openapi.yaml
+#     #   run: npx --no -- spectral lint openapi/openapi.yaml
+#     # Breaking-change gate (patterns/codegen.md): compare the changed spec
+#     # with the base revision, e.g. oasdiff. Replace the base ref and path.
+#     # openapi-breaking:
+#     #   glob: "openapi/**"
+#     #   run: git show origin/main:openapi/openapi.yaml > /tmp/base-openapi.yaml && oasdiff breaking /tmp/base-openapi.yaml openapi/openapi.yaml --fail-on ERR

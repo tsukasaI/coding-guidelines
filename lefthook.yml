@@ -4,6 +4,7 @@
 # per-language job set a consuming project should add once it has source in
 # that language.
 
+min_version: 1.10.2
 pre-commit:
   parallel: true
   commands:
