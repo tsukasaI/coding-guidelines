@@ -58,6 +58,8 @@ APIs, and MUST be recorded as an exception in the project's CLAUDE.md.
 - Generated types are transport/storage DTOs, NOT domain types. The boundary
   still parses them into domain values (parse, don't validate). A generated
   client type proves what the wire promised, not what the domain requires.
+  Whether that parse also needs a runtime schema depends on the source:
+  `languages/typescript.md` "Boundaries and validation".
 
 Ref: docs.sqlc.dev (diff/vet); github.com/oapi-codegen/oapi-codegen;
 openapi-ts.dev; docs.rs/sqlx (offline mode); pgtyped.dev;

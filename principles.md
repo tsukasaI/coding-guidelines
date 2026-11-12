@@ -2,8 +2,8 @@
 
 Language-agnostic rules that every guide in this repository specializes.
 Precedence when guides appear to conflict: frontend guide > language guide >
-this file — the more specific guide encodes the same principle under tighter
-constraints.
+patterns guide (`patterns/`) > this file — the more specific guide encodes the
+same principle under tighter constraints.
 
 ## Terminology
 
