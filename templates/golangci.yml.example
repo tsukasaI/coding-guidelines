@@ -41,7 +41,8 @@ linters:
     nolintlint:
       # require-explanation defaults to false; without it, a bare
       # `//nolint:errcheck` with no reason passes silently and the
-      # suppression-audit-trail claim below is false.
+      # "suppressions MUST carry a reason" claim on `nolintlint` in the
+      # enable list above is false.
       require-explanation: true
       require-specific: true
       allow-unused: false
@@ -74,11 +75,11 @@ linters:
             - pkg: database/sql
               desc: "domain packages MUST NOT import database/sql — see go.md 'Domain modelling'"
       # depguard bans import paths, not directory names — it cannot enforce
-      # the `pkg/` directory ban below; that's the lefthook layout-ban job.
+      # go.md's `pkg/` directory ban; that's the lefthook `go-layout-ban` job.
 
     revive:
       rules:
-        # revive's ~20 default rules, listed explicitly because setting
+        # revive's 23 default rules, listed explicitly because setting
         # `settings.revive.rules` at all replaces the defaults rather than
         # adding to them.
         - name: blank-imports
@@ -89,6 +90,7 @@ linters:
         - name: error-naming
         - name: error-return
         - name: error-strings         # enforced: go.md "error strings MUST be lower-case and unpunctuated"
+        - name: errorf
         - name: exported              # enforced: go.md "NEVER stutter"
         - name: increment-decrement
         - name: indent-error-flow
@@ -111,8 +113,12 @@ formatters:
     - gofumpt
   settings:
     gofumpt:
-      extra-rules: true   # extra opinionated rules beyond gofumpt's
-                           # default set (`gofumpt -h` lists the current set)
+      # `extra-rules` is deprecated in golangci-lint v2; use `extra`
+      # (https://golangci-lint.run/docs/formatters/configuration/). Each key
+      # enables one extra opinionated rule beyond gofumpt's default set;
+      # `group-params` is what `extra-rules: true` used to turn on.
+      extra:
+        group-params: true
 
 issues:
   max-issues-per-linter: 0

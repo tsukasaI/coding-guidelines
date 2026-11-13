@@ -71,6 +71,9 @@ func (s *PgStore) PlaceOrder(ctx context.Context, o order.Order) error {
   the real schema; the typed access layer is generated, never hand-rolled
   string concatenation. Generated-code handling rules: `patterns/codegen.md`.
 
+- pgtyped's release activity: see "Tool status" in `patterns/tooling.md`
+  before adopting it in a new project.
+
 Ref: docs.sqlc.dev; docs.rs/sqlx (offline mode, migrate); pgtyped.dev.
 
 ## Anti-patterns AI agents produce around persistence
