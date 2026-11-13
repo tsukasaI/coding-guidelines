@@ -12,7 +12,7 @@ paths:
 
 Specializes `principles.md`, `languages/typescript.md`, and
 `frontend/common.md` for Svelte.
-Baseline: Svelte 5 with runes (+ SvelteKit for apps), TypeScript strict.
+Baseline: Svelte 5 with runes (+ SvelteKit 3.x for apps), TypeScript strict.
 Svelte 4 syntax — `export let`, `$:` reactive statements, store-first state,
 slots — MUST NOT be written in new components; it appears below only as "do
 not use". A component is runes or legacy as a whole (the two cannot be mixed
@@ -112,11 +112,15 @@ Ref: svelte.dev/docs/svelte/stores; svelte.dev/docs/kit/state-management.
 - Server-only concerns (secrets, DB access) MUST live in `+page.server.ts` /
   `$lib/server/` so they never reach the client bundle.
 - Mutations go through form actions (progressive enhancement via `use:enhance`)
-  or the typed API port (`frontend/common.md`).
+  or the typed API port (`frontend/common.md`). Remote functions are still
+  experimental (opt-in flags, API may change without notice), yet the
+  form-actions docs suggest considering them for new projects; this guide
+  stays on form actions until they stabilize.
 - Instead of fetching in `onMount`/`$effect`, use a `load` function; for
   component-local async, prefer `{#await}` blocks over manual state triples.
 
-Ref: svelte.dev/docs/kit/load; svelte.dev/docs/kit/form-actions.
+Ref: svelte.dev/docs/kit/load; svelte.dev/docs/kit/form-actions;
+svelte.dev/docs/kit/remote-functions.
 
 ## Error handling
 

@@ -21,6 +21,9 @@
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
     "noImplicitOverride": true,
+    // Errors on enum and runtime namespaces (TS 5.8+), per the enum/namespace
+    // ban in languages/typescript.md.
+    "erasableSyntaxOnly": true,
 
     // Removed in TS 7 — listed here as a reminder NOT to reintroduce them,
     // not because they need to be set:

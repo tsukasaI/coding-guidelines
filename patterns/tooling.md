@@ -108,6 +108,17 @@ that API through ESLint (`templates/eslint.*.config.example`) and therefore
 MUST stay on TS 6.x until then; React and backend TypeScript projects lint
 with oxlint + tsgolint and use TS 7.
 
+Type-aware oxlint (`oxlint --type-aware`, via tsgolint) requires TS 7.0+
+(https://oxc.rs/docs/guide/usage/linter/type-aware.html), so a TS 6.x project
+cannot rely on it. There, type errors come from `tsc --noEmit` or
+`svelte-check` (a separate lefthook job, see
+`templates/lefthook.yml.example`), and type-aware lint rules such as
+`no-floating-promises` must come from `typescript-eslint` in the project's
+ESLint config. The Svelte and Solid ESLint templates do not yet enable such
+rules (Svelte extends `ts.configs.recommended` with `projectService`; Solid
+sets only the parser), so a TS 6.x project that wants them adds a
+`typescript-eslint` type-checked config itself.
+
 ## The `(enforced: ...)` convention
 
 - When a MUST/NEVER rule in a language file has an off-the-shelf

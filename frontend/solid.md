@@ -40,12 +40,15 @@ function Price(raw: PriceProps) {
 }
 ```
 
-- Use control-flow components — `<Show>`, `<For>`, `<Switch>` — instead of
-  ternaries and `array.map` in JSX: they reconcile fine-grained instead of
-  recreating DOM. NEVER early-return from a component body based on a signal;
-  the condition would be read once, untracked.
+- Use `<For>` instead of `array.map` in JSX: it updates the list
+  fine-grained, where `.map` loses that granularity. Prefer `<Show>` / `<Switch>` over ternaries for conditional
+  rendering; the docs present `<Show>` as similar to the ternary, so this is
+  a readability convention (fallbacks, narrowing), not a performance rule.
+  NEVER early-return from a component body based on a signal; the condition
+  would be read once, untracked.
 
-Ref: docs.solidjs.com/concepts/components/props.
+Ref: docs.solidjs.com/concepts/components/props;
+docs.solidjs.com/concepts/control-flow/conditional-rendering.
 
 ## State management
 
@@ -104,7 +107,9 @@ Ref: docs.solidjs.com/reference/basic-reactivity/create-resource.
 
 - Module-level signals/stores are Solid's simplest global state: a
   `createStore` exported from a plain TS module is fine for genuinely global
-  client state — fine-grained subscriptions mean no over-render tax.
+  client state — fine-grained subscriptions mean no over-render tax. Such
+  state is UI state, not a dependency: services and ports are still injected
+  (next bullet), which keeps principles.md's global-state ban intact.
 - Use context (`createContext`/`useContext`) for injection — services, API
   ports, theme, current user — provided at the composition root; and for
   state scoped to a subtree with multiple instances (each provider is its own
@@ -132,8 +137,9 @@ Ref: docs.solidjs.com/reference/basic-reactivity/create-resource.
    Components run once; everything dynamic must be read inside a tracking scope.
 2. **Derived value computed at setup**: `const total = items().length * 2` in
    the component body — frozen forever. Make it a function or a memo.
-3. **`array.map` and ternaries in JSX** instead of `<For>`/`<Show>`: recreates
-   DOM per change and, with `.map`, loses fine-grained updates.
+3. **`array.map` in JSX** instead of `<For>`: loses fine-grained list
+   updates. Ternaries instead of `<Show>` are a readability matter, not a
+   performance one.
 4. **Fetching in effects**: `createEffect` + loading/error signals instead of
    `createResource`; races, no Suspense integration.
 5. **Signal-call amnesia**: passing `items` where `items()` is needed (or

@@ -51,7 +51,10 @@ Use these terms consistently; do not introduce synonyms.
   ad-hoc dependencies from context deep in the tree is still banned.
 - The logger is an ordinary injected dependency, built in the composition
   root. A process-wide structured logger configured once at startup is the
-  single sanctioned exception to the global-state ban.
+  single sanctioned exception to the global-state ban for dependencies. The
+  frontend guides separately carve out module-level client UI state stores
+  (see `frontend/*.md`): UI state is not a dependency, and ports and services
+  still arrive by injection.
 - Configuration (env vars, flags, config files) MUST be read once, at the
   composition root, parsed into a typed config value, and passed down.
   NEVER read env vars from arbitrary depths of the codebase.
