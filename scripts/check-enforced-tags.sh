@@ -2,10 +2,12 @@
 # Check that every rule/job named in an `(enforced: ...)` tag in
 # languages/*.md, frontend/*.md, patterns/*.md and principles.md exists in
 # some templates/*.example file. Prints the missing ones and exits 1.
-# Needs bash, grep, perl, sed, tr.
+# Needs bash, grep, perl, tr.
 #
-# Names are matched as fixed strings (regex metacharacters in a name are
-# escaped). Comments in the templates are stripped before matching, so a name
+# Names are matched literally (names are identifier-shaped, so `.` is the only
+# regex metacharacter, and it is escaped). templates/CLAUDE.md.example is prose
+# and is not searched. Comments in the templates are stripped before
+# matching, so a name
 # that only appears in a comment does not count: whole-line `#` / `//`
 # comments, and trailing ` # ...` / ` // ...` comments (the marker must follow
 # whitespace). Known limitation: `/* ... */` block comments are not stripped,
@@ -56,18 +58,23 @@ DEFAULT_GROUP_CLIPPY=(
 default_group_clippy() {
   local l
   for l in "${DEFAULT_GROUP_CLIPPY[@]}"; do
-    [[ $1 == "$l" ]] && grep -qF -- '-D warnings' templates/lefthook.yml.example && return 0
+    [[ $1 == "$l" ]] && grep -qF -- '-D warnings' <<<"$TEMPLATES" && return 0
   done
   return 1
 }
 
 # Template contents with comments removed (see the header for the limits).
-TEMPLATES=$(perl -pe 's{^\s*(?:\#|//).*$}{}; s{(?<=\s)(?:\#|//).*$}{}' templates/*.example)
+TEMPLATE_FILES=()
+for t in templates/*.example; do
+  [[ $t == templates/CLAUDE.md.example ]] || TEMPLATE_FILES+=("$t")
+done
+TEMPLATES=$(perl -pe '$_ .= "\n" if eof && !/\n\z/; s{^\s*(?:\#|//).*$}{}; s{(?<=\s)(?:\#|//).*$}{}' "${TEMPLATE_FILES[@]}")
 
 in_templates() { grep -qE -- "$1" <<<"$TEMPLATES"; }
 
-# Escape ERE metacharacters so a rule name is matched literally.
-re_escape() { printf '%s' "$1" | sed 's/[][\.*^$+?(){}|/-]/\\&/g'; }
+# Names are identifier-shaped (see the shape check below): `.` is the only
+# ERE metacharacter they can contain.
+re_escape() { printf '%s' "${1//./[.]}"; }
 
 exists() {
   local tok=$1 rule
@@ -115,8 +122,8 @@ for f in languages/*.md frontend/*.md patterns/*.md principles.md; do
     perl -ne 'print "$&\n" while /\(enforced(?:[^()]|(\((?:[^()]|(?1))*\)))*\)/g')
 done
 
-if ((tags == 0)); then
-  echo "error: no (enforced: ...) tags found; the extraction is broken" >&2
+if ((tags == 0 || checked == 0)); then
+  echo "error: found ${tags} (enforced: ...) tags and ${checked} names; the extraction is broken" >&2
   exit 1
 fi
 

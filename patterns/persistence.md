@@ -71,8 +71,8 @@ func (s *PgStore) PlaceOrder(ctx context.Context, o order.Order) error {
   the real schema; the typed access layer is generated, never hand-rolled
   string concatenation. Generated-code handling rules: `patterns/codegen.md`.
 
-- pgtyped's last npm release is 2.4.3 (2025-03-15): see "Tool status" in
-  `patterns/tooling.md` before adopting it in a new project.
+- pgtyped's release activity: see "Tool status" in `patterns/tooling.md`
+  before adopting it in a new project.
 
 Ref: docs.sqlc.dev; docs.rs/sqlx (offline mode, migrate); pgtyped.dev.
 

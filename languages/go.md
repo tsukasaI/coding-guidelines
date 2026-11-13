@@ -54,13 +54,13 @@ var store = postgres.NewStore(os.Getenv("DSN"))
 
 // Good: composition root wires everything explicitly
 func main() {
-    if err := run(); err != nil {
+    if err := run(context.Background()); err != nil {
         log.Fatal(err)
     }
 }
 
-func run() error {
-    ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+func run(ctx context.Context) error {
+    ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
     defer stop()
 
     cfg, err := config.Load() // parse env once, here
@@ -71,6 +71,7 @@ func run() error {
     if err != nil {
         return fmt.Errorf("open store: %w", err)
     }
+    defer store.Close()
     srv := &http.Server{
         Addr:              cfg.Addr,
         Handler:           api.NewServer(cfg.API, store), // *Server, concrete
@@ -84,12 +85,16 @@ func run() error {
     go func() { errc <- srv.ListenAndServe() }()
     select {
     case err := <-errc:
-        return err
+        return fmt.Errorf("serve: %w", err)
     case <-ctx.Done():
+        stop() // a second signal now kills the process instead of waiting
     }
     shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancel()
-    return srv.Shutdown(shutdownCtx) // timeouts and drain: patterns/http.md
+    if err := srv.Shutdown(shutdownCtx); err != nil { // timeouts and drain: patterns/http.md
+        return fmt.Errorf("shutdown: %w", err)
+    }
+    return nil
 }
 ```
 
@@ -300,7 +305,7 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
 - Suppressions (`//nolint:...`) MUST carry a reason
   (`//nolint:errcheck // reason`). Why: a suppression without a readable
   reason cannot be reviewed or expired. (enforced: `nolintlint` with
-  `require-explanation: true` set; the linter's default is `false`, so
+  `require-explanation: true` set; the linter's default is false, so
   enabling `nolintlint` alone does not require a reason)
 
 Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt.

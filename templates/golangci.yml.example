@@ -91,7 +91,7 @@ linters:
         - name: error-return
         - name: error-strings         # enforced: go.md "error strings MUST be lower-case and unpunctuated"
         - name: errorf
-        - name: exported             # enforced: go.md "NEVER stutter"
+        - name: exported              # enforced: go.md "NEVER stutter"
         - name: increment-decrement
         - name: indent-error-flow
         - name: package-comments
