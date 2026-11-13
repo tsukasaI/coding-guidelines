@@ -59,7 +59,7 @@ func main() {
     }
 }
 
-func run(ctx context.Context) error {
+func run(ctx context.Context) (err error) {
     ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
     defer stop()
 
@@ -71,7 +71,7 @@ func run(ctx context.Context) error {
     if err != nil {
         return fmt.Errorf("open store: %w", err)
     }
-    defer store.Close()
+    defer func() { err = errors.Join(err, store.Close()) }()
     srv := &http.Server{
         Addr:              cfg.Addr,
         Handler:           api.NewServer(cfg.API, store), // *Server, concrete

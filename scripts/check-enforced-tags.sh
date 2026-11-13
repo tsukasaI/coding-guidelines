@@ -4,11 +4,10 @@
 # some templates/*.example file. Prints the missing ones and exits 1.
 # Needs bash, grep, perl, tr.
 #
-# Names are matched literally (names are identifier-shaped, so `.` is the only
-# regex metacharacter, and it is escaped). templates/CLAUDE.md.example is prose
-# and is not searched. Comments in the templates are stripped before
-# matching, so a name
-# that only appears in a comment does not count: whole-line `#` / `//`
+# Names are matched literally: they are identifier-shaped, so `.` is the only
+# regex metacharacter, and it is escaped. templates/CLAUDE.md.example is prose
+# and is not searched. Comments in the templates are stripped before matching,
+# so a name that only appears in a comment does not count: whole-line `#` / `//`
 # comments, and trailing ` # ...` / ` // ...` comments (the marker must follow
 # whitespace). Known limitation: `/* ... */` block comments are not stripped,
 # and a ` #` or ` //` inside a quoted string is treated as a comment start.
@@ -58,7 +57,7 @@ DEFAULT_GROUP_CLIPPY=(
 default_group_clippy() {
   local l
   for l in "${DEFAULT_GROUP_CLIPPY[@]}"; do
-    [[ $1 == "$l" ]] && grep -qF -- '-D warnings' <<<"$TEMPLATES" && return 0
+    [[ $1 == "$l" ]] && grep -qF -- '-D warnings' <<<"$LEFTHOOK_TEMPLATE" && return 0
   done
   return 1
 }
@@ -68,7 +67,11 @@ TEMPLATE_FILES=()
 for t in templates/*.example; do
   [[ $t == templates/CLAUDE.md.example ]] || TEMPLATE_FILES+=("$t")
 done
-TEMPLATES=$(perl -pe '$_ .= "\n" if eof && !/\n\z/; s{^\s*(?:\#|//).*$}{}; s{(?<=\s)(?:\#|//).*$}{}' "${TEMPLATE_FILES[@]}")
+strip_comments() {
+  perl -pe '$_ .= "\n" if eof && !/\n\z/; s{^\s*(?:\#|//).*$}{}; s{(?<=\s)(?:\#|//).*$}{}' "$@"
+}
+TEMPLATES=$(strip_comments "${TEMPLATE_FILES[@]}")
+LEFTHOOK_TEMPLATE=$(strip_comments templates/lefthook.yml.example)
 
 in_templates() { grep -qE -- "$1" <<<"$TEMPLATES"; }
 
