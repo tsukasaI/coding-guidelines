@@ -26,13 +26,15 @@ Specializes `principles.md` for Go. Baseline: current stable Go, modules only.
 - NEVER stutter: `order.Service`, not `order.OrderService`. (enforced:
   `revive.exported`)
 
-Ref: go.dev/doc/modules/layout; Google Go Style Guide (package names).
+Ref: Organizing a Go module (https://go.dev/doc/modules/layout); Google Go
+Style Guide, package names
+(https://google.github.io/styleguide/go/decisions#package-names).
 
 ## Composition and dependency injection
 
 - Per principles.md "Composition root": constructors are plain functions,
   `NewServer(cfg Config, store OrderStore) *Server`, and wiring happens in
-  `main` (or a `run(ctx, args)` it delegates to). No `init` wiring either.
+  `main` (or a `run(ctx, args)` it delegates to). NEVER wire in `init` either.
 - Code-generated wiring (`google/wire`) MAY be considered only when the
   dependency graph is too large to wire by hand (say, `run` constructs 30+
   dependencies and their ordering is a recurring source of edits), and note that
@@ -98,7 +100,9 @@ func run(ctx context.Context) (err error) {
 }
 ```
 
-Ref: Google Go Style Guide "Global state"; go.dev/wiki/CodeReviewComments (contexts).
+Ref: Google Go Style Guide, "Global state"
+(https://google.github.io/styleguide/go/best-practices); Go Code Review
+Comments, contexts (https://go.dev/wiki/CodeReviewComments).
 
 ## Interfaces (ports)
 
@@ -126,7 +130,9 @@ type OrderStore interface {
 func NewServer(cfg Config, store OrderStore) *Server { ... }
 ```
 
-Ref: go.dev/wiki/CodeReviewComments#interfaces; Google Go Style Guide (interfaces).
+Ref: Go Code Review Comments, interfaces
+(https://go.dev/wiki/CodeReviewComments); Google Go Style Guide, interfaces
+(https://google.github.io/styleguide/go/decisions).
 
 ## Domain modelling
 
@@ -177,6 +183,11 @@ type OrderState interface{ OrderState() }
   customized to this project's real adapter/transport package names,
   depguard scopes by path pattern, not by architectural role)
 
+Ref: Go spec, type definitions (https://go.dev/ref/spec#Type_definitions);
+Effective Go, embedding (https://go.dev/doc/effective_go#embedding); Parse,
+don't validate (https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/).
+The sealed-interface pattern and the `depguard` scoping are house rules.
+
 ## Error handling
 
 - Errors are values. Handle every error: return it, act on it, or — rarely
@@ -196,7 +207,7 @@ type OrderState interface{ OrderState() }
 - Per principles.md "Errors as values" (translate at boundaries): adapters
   map `sql.ErrNoRows` to `order.ErrNotFound`; driver errors MUST NOT escape
   the adapter.
-- Handle an error exactly once: return it and log at the top, never
+- Handle an error exactly once: return it and log at the top, NEVER
   log-and-return (see anti-pattern 3).
 - `panic` is for programmer errors only (broken invariant, impossible branch).
   NEVER panic on bad input or I/O failure. Do not use `recover` as a general
@@ -226,8 +237,10 @@ if errors.Is(err, order.ErrNotFound) {
 }
 ```
 
-Ref: go.dev/blog/go1.13-errors; go.dev/wiki/CodeReviewComments (error strings,
-handle errors); Google Go Style Guide (errors).
+Ref: Working with Errors in Go 1.13 (https://go.dev/blog/go1.13-errors); Go
+Code Review Comments, error strings and handle errors
+(https://go.dev/wiki/CodeReviewComments); Google Go Style Guide, errors
+(https://google.github.io/styleguide/go/decisions#errors).
 
 ## Testing
 
@@ -278,7 +291,9 @@ func TestParseEmail(t *testing.T) {
   partial: `paralleltest` and `tparallel` catch missing `t.Parallel()`, not
   the shared-state case itself; code review still has to catch that.)
 
-Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComments.
+Ref: Google Go Style Guide, best practices, test doubles
+(https://google.github.io/styleguide/go/best-practices); Go Test Comments
+(https://go.dev/wiki/TestComments).
 
 ## Tooling
 
@@ -308,7 +323,9 @@ Ref: Google Go Style Guide (best practices: test doubles); go.dev/wiki/TestComme
   `require-explanation: true` set; the linter's default is false, so
   enabling `nolintlint` alone does not require a reason)
 
-Ref: golangci-lint.run (v2 configuration model); github.com/mvdan/gofumpt.
+Ref: golangci-lint configuration, v2 configuration model
+(https://golangci-lint.run/docs/configuration/); gofumpt
+(https://github.com/mvdan/gofumpt).
 
 ## Anti-patterns AI agents produce in Go
 

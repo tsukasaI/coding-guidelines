@@ -19,6 +19,11 @@ Use these terms consistently; do not introduce synonyms.
 - **Composition root**: the single place — the program entry point — where
   concrete adapters are constructed and wired into the code that needs them.
 
+Ref: Hexagonal (Ports & Adapters) Architecture
+(https://alistair.cockburn.us/hexagonal-architecture/); Composition Root
+(https://blog.ploeh.dk/2011/07/28/CompositionRoot/). The Domain and Boundary
+definitions are house rules.
+
 ## Dependency direction
 
 - Dependencies MUST point inward: adapters depend on ports; ports and the
@@ -35,6 +40,12 @@ Use these terms consistently; do not introduce synonyms.
   transaction types MUST NOT appear in port signatures (details:
   `patterns/persistence.md`).
 
+Ref: The Clean Architecture, the Dependency Rule
+(https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html);
+Hexagonal (Ports & Adapters) Architecture
+(https://alistair.cockburn.us/hexagonal-architecture/). The consumer-owned
+port and minimal-port rules are house rules.
+
 ## Composition root
 
 - All wiring — constructing adapters, injecting them into services — MUST
@@ -48,7 +59,7 @@ Use these terms consistently; do not introduce synonyms.
 - A UI framework's context/provider is NOT a service locator when it only
   carries values constructed at the composition root down the tree (ports,
   theme, current user). Providing at the root is explicit wiring; resolving
-  ad-hoc dependencies from context deep in the tree is still banned.
+  ad-hoc dependencies from context deep in the tree is NOT allowed.
 - The logger is an ordinary injected dependency, built in the composition
   root. A process-wide structured logger configured once at startup is the
   single sanctioned exception to the global-state ban for dependencies. The
@@ -58,6 +69,11 @@ Use these terms consistently; do not introduce synonyms.
 - Configuration (env vars, flags, config files) MUST be read once, at the
   composition root, parsed into a typed config value, and passed down.
   NEVER read env vars from arbitrary depths of the codebase.
+
+Ref: Composition Root (https://blog.ploeh.dk/2011/07/28/CompositionRoot/);
+Service Locator is an Anti-Pattern
+(https://blog.ploeh.dk/2010/02/03/ServiceLocatorisanAnti-Pattern/); The
+Twelve-Factor App, III. Config (https://12factor.net/config).
 
 ## Parse, don't validate
 
@@ -73,6 +89,9 @@ Use these terms consistently; do not introduce synonyms.
 - Raw primitives (string, int) from a boundary MUST NOT travel more than one
   layer inward. Wrap them at the edge.
 
+Ref: Parse, don't validate
+(https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/).
+
 ## Errors as values
 
 - Expected failures (not found, invalid input, conflict, timeout) MUST be
@@ -86,7 +105,12 @@ Use these terms consistently; do not introduce synonyms.
   transport layer maps domain errors to protocol responses (404, exit code).
   Why: callers should branch on your contract, not your dependency's.
 - Add context when crossing a boundary (which operation, which entity), but
-  handle each error exactly once — either log it or return it, never both.
+  handle each error exactly once — either log it or return it, NEVER both.
+
+Ref: Errors are values (https://go.dev/blog/errors-are-values); The Rust
+Book ch. 9, Error Handling
+(https://doc.rust-lang.org/book/ch09-00-error-handling.html). Translating
+errors at layer boundaries and the handle-once rule are house rules.
 
 ## Testing policy
 
@@ -108,6 +132,13 @@ Use these terms consistently; do not introduce synonyms.
 - Tests MUST be independent: no ordering assumptions, no mutable state shared
   between tests. Each test owns its fixtures.
 
+Ref: Test Behavior, Not Implementation
+(https://testing.googleblog.com/2013/08/testing-on-toilet-test-behavior-not.html);
+Prefer Testing Public APIs Over Implementation-Detail Classes
+(https://testing.googleblog.com/2015/01/testing-on-toilet-prefer-testing-public.html);
+Software Engineering at Google ch. 13, Test Doubles
+(https://abseil.io/resources/swe-book/html/ch13.html).
+
 ## Simplicity
 
 - Introduce an abstraction (port, layer, generic parameter) only when there is
@@ -117,6 +148,8 @@ Use these terms consistently; do not introduce synonyms.
   genuine seams).
 - Code MUST be written for the reader: prefer boring, explicit code over
   clever constructs. Optimize only after measuring.
+
+Ref: Yagni (https://martinfowler.com/bliki/Yagni.html).
 
 ### Reuse ladder
 
@@ -136,4 +169,5 @@ Before writing new code, take the first option that fully works:
   that prevents data loss, security, accessibility, and anything the
   requester explicitly asked for.
 
-Ref: DietrichGebert/ponytail (MIT), reuse ladder and never-cut list.
+Ref: DietrichGebert/ponytail (MIT), reuse ladder and never-cut list
+(https://github.com/DietrichGebert/ponytail).

@@ -5,10 +5,16 @@ Opinionated coding guidelines for backend (TypeScript, Go, Rust) and frontend
 loads these files as context from a project's `CLAUDE.md` / `AGENTS.md`; the
 secondary consumer is a human studying the architecture decisions.
 
-Rules are normative (MUST / SHOULD / NEVER), grounded in primary sources
-(official docs, style guides, and team blogs), and kept short enough to load
-selectively. Where a rule follows from a specific source, the section ends
-with a reference line.
+Rules are normative (MUST / MUST NOT / SHOULD / MAY / NEVER), grounded in
+primary sources (official docs, style guides, and team blogs), and kept short
+enough to load selectively. The words follow
+[RFC 2119](https://www.rfc-editor.org/rfc/rfc2119): MUST is an absolute
+requirement, MUST NOT an absolute prohibition, SHOULD a strong default that
+may be departed from for a stated reason, and MAY a truly optional choice.
+NEVER is this repository's emphatic form of MUST NOT, used where a rule
+is a hard ban. Where a rule follows from a specific source, its section
+ends with a reference line of URLs; where the rule is this repository's own
+judgment, the line reads `Ref: house rule (no external source).`
 
 ## How to consume this repo
 
@@ -52,7 +58,7 @@ configuration, and this repo does not restate it.
 Deliberate exceptions, kept here because each is inseparable from the code
 rule it qualifies:
 
-- The hook-bypass policy in `patterns/tooling.md` (humans only, never
+- The hook-bypass policy in `patterns/tooling.md` (humans only, NEVER
   agents): it defines what "hooks are a zero-warnings gate" means.
 - The requester-communication clauses of the reuse ladder in `principles.md`
   ("name what you skipped" and "anything the requester explicitly asked
