@@ -18,7 +18,7 @@ TypeScript 6.x (`patterns/tooling.md` "TypeScript version vs. TS-API tools").
 
 - Components are setup functions: wire signals, memos, and handlers, return
   JSX. Splitting components is for organization only — unlike React it has no
-  performance meaning, so split by responsibility, never "to reduce renders".
+  performance meaning, so split by responsibility, NEVER "to reduce renders".
 - Reusable reactive logic goes in custom primitives (`createCheckout()`),
   Solid's equivalent of custom hooks; domain logic stays in plain TS
   (`frontend/common.md`).
@@ -47,8 +47,9 @@ function Price(raw: PriceProps) {
   NEVER early-return from a component body based on a signal; the condition
   would be read once, untracked.
 
-Ref: docs.solidjs.com/concepts/components/props;
-docs.solidjs.com/concepts/control-flow/conditional-rendering.
+Ref: Props (https://docs.solidjs.com/concepts/components/props);
+Conditional rendering
+(https://docs.solidjs.com/concepts/control-flow/conditional-rendering).
 
 ## State management
 
@@ -85,7 +86,9 @@ const total = createMemo(() => items().reduce((s, i) => s + i.price, 0));
 - Colocate signals in the component or primitive that owns them; lift to a
   shared custom primitive or module-level signal only when actually shared.
 
-Ref: docs.solidjs.com/concepts/derived-values/memos, /concepts/effects.
+Ref: Memos (https://docs.solidjs.com/concepts/derived-values/memos);
+Effects (https://docs.solidjs.com/concepts/effects); Stores
+(https://docs.solidjs.com/concepts/stores).
 
 ## Data fetching
 
@@ -93,7 +96,7 @@ Ref: docs.solidjs.com/concepts/derived-values/memos, /concepts/effects.
   SolidStart route `preload`/`query`): it ties the request to a source signal,
   re-fetches when it changes, and integrates with `<Suspense>` and
   `<ErrorBoundary>`.
-- No fetch inside `createEffect` (`frontend/common.md`); the docs position
+- NEVER fetch inside `createEffect` (`frontend/common.md`); the docs position
   `createResource` as the alternative. The fetcher calls the typed API port.
 
 ```tsx
@@ -101,7 +104,8 @@ const [order] = createResource(orderId, (id) => api.fetchOrder(id));
 // <Suspense fallback={<Spinner/>}> {order()?.total} </Suspense>
 ```
 
-Ref: docs.solidjs.com/reference/basic-reactivity/create-resource.
+Ref: createResource
+(https://docs.solidjs.com/reference/basic-reactivity/create-resource).
 
 ## Context and global state
 
@@ -116,6 +120,10 @@ Ref: docs.solidjs.com/reference/basic-reactivity/create-resource.
   scope; a module-level signal would be accidentally shared).
 - Server data stays in resources/route loaders (`frontend/common.md`).
 
+Ref: Context (https://docs.solidjs.com/concepts/context); Stores
+(https://docs.solidjs.com/concepts/stores). Using context as the
+composition-root conduit is a house rule.
+
 ## Error handling
 
 - Expected failures are values: resources expose `error`; render failure
@@ -123,12 +131,20 @@ Ref: docs.solidjs.com/reference/basic-reactivity/create-resource.
 - Wrap routable regions in `<ErrorBoundary fallback={...}>` so a thrown bug
   degrades a panel, not the app. Handler errors are handled in the handler.
 
+Ref: ErrorBoundary
+(https://docs.solidjs.com/reference/components/error-boundary);
+createResource (https://docs.solidjs.com/reference/basic-reactivity/create-resource).
+Treating expected failures as values is a house rule.
+
 ## Testing
 
 - Domain logic: plain TS unit tests, no Solid involved.
 - Custom primitives: test inside `createRoot` so ownership/disposal work.
 - Components: render and assert on accessible output; fake at the
   port/network seam per `frontend/common.md`.
+
+Ref: Solid Testing (https://docs.solidjs.com/guides/testing); createRoot
+(https://docs.solidjs.com/reference/reactive-utilities/create-root).
 
 ## Anti-patterns AI agents produce in Solid
 

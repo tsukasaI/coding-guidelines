@@ -17,7 +17,7 @@ modules of functions and plain data, not class hierarchies.
 ## Compiler baseline
 
 - `strict: true`, an es2025+ target, and ESM `module` are the TS 6.0
-  defaults — MUST NOT be weakened. Never set `strict: false` or reintroduce
+  defaults, MUST NOT be weakened. NEVER set `strict: false` or reintroduce
   CommonJS output. Pick the module pair by who consumes the emitted JS:
   `module: "nodenext"` (implies `moduleResolution: "nodenext"`) for code Node
   runs directly (services and libraries), `module: "esnext"` +
@@ -38,15 +38,18 @@ modules of functions and plain data, not class hierarchies.
   `templates/eslint.*.config.example`) MUST stay on 6.x; React and backend
   projects, linted by oxlint + tsgolint, use TS 7. See `patterns/tooling.md`
   "TypeScript version vs. TS-API tools".
-- `any` is banned in first-party code; use `unknown` and narrow. `as` casts
+- NEVER use `any` in first-party code; use `unknown` and narrow. `as` casts
   need a comment justifying why narrowing is impossible; `as const` and
   `satisfies` are not casts. (enforced:
   `typescript/no-explicit-any` in `templates/oxlintrc.json.example`; the
   comment-on-`as` requirement has no linter, code review still catches it.)
 
-Ref: devblogs.microsoft.com/typescript (6.0 and 7.0 announcements);
-typescriptlang.org/tsconfig;
-typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html.
+Ref: Announcing TypeScript 6.0
+(https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/) and 7.0
+(https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/);
+TSConfig Reference (https://www.typescriptlang.org/tsconfig); Modules,
+Choosing Compiler Options
+(https://www.typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html).
 
 ## Tooling
 
@@ -75,9 +78,15 @@ typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html.
 - No oxlint rule enforces "dependencies are function parameters, no DI
   container, no import-time side effects"; that stays code-review-only.
 
-Ref: oxc.rs (oxlint, oxfmt, tsgolint docs, no-barrel-file, JS Plugins
-Alpha); typescript-eslint.io (strict-type-checked, stylistic-type-checked);
-biomejs.dev.
+Ref: Oxlint (https://oxc.rs/docs/guide/usage/linter); Oxfmt
+(https://oxc.rs/docs/guide/usage/formatter); type-aware linting with tsgolint
+(https://oxc.rs/docs/guide/usage/linter/type-aware.html); `oxc/no-barrel-file`
+(https://oxc.rs/docs/guide/usage/linter/rules/oxc/no-barrel-file.html);
+Oxlint JS Plugins Alpha
+(https://oxc.rs/blog/2026-03-11-oxlint-js-plugins-alpha);
+typescript-eslint shared configs, strict-type-checked and
+stylistic-type-checked (https://typescript-eslint.io/users/configs); Biome
+(https://biomejs.dev/).
 
 ## Project layout
 
@@ -86,18 +95,23 @@ biomejs.dev.
   functions that use them. (enforced: `ts-layout-ban` job in
   `templates/lefthook.yml.example`)
 - Each feature exposes a deliberate public surface via its top module; deep
-  imports into another feature's internals are forbidden. (enforced,
+  imports into another feature's internals MUST NOT be used. (enforced,
   partial: `eslint/no-restricted-imports` can only match a path pattern, it
   has no concept of "a feature's internals" on its own. Put non-public
   modules under an `internal/` subdirectory per feature
   (`src/order/internal/*`) so the rule in
   `templates/oxlintrc.json.example` has something literal to match; a
   feature that doesn't follow that convention isn't covered.)
-- No barrel files that re-export the world; they create cycles and defeat
+- NEVER add barrel files that re-export the world; they create cycles and defeat
   tree-shaking. Export from the feature root only what other features need.
   (enforced: `oxc/no-barrel-file`, native, no compat-layer plugin needed;
   import-cycle detection itself needs `import/no-cycle` behind oxlint's
   JS-plugin layer, see Tooling above)
+
+Ref: `oxc/no-barrel-file`
+(https://oxc.rs/docs/guide/usage/linter/rules/oxc/no-barrel-file.html)
+supports the barrel-file rule only. Grouping by feature and the public-surface
+rule are house rules.
 
 ## Composition and dependency injection
 
@@ -134,6 +148,8 @@ const cfg = parseConfig(process.env);
 const repo = makePgOrderRepo(pgPool(cfg.db));
 const checkout = makeCheckout({ repo, clock: () => new Date() });
 ```
+
+Ref: house rule (no external source).
 
 ## Domain modelling
 
@@ -182,11 +198,14 @@ const UserId = (s: string) => s as UserId;
   that survives compilation. Use union-of-literals (with a `const` object for
   values) and plain modules. Ambient declarations (`declare global`,
   `declare module`) are type-only and allowed. (enforced, partial:
-  `erasableSyntaxOnly` in `templates/tsconfig.json.example` rejects `enum`
+  `erasableSyntaxOnly` in `templates/tsconfig.json.example` rejects enums
   and namespaces that contain runtime code; a types-only namespace passes
   the compiler and is left to code review.)
 
-Ref: TS Handbook (narrowing, discriminated unions, `satisfies`).
+Ref: TypeScript Handbook, narrowing and discriminated unions
+(https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions);
+the `satisfies` operator
+(https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator).
 
 ## Boundaries and validation
 
@@ -224,6 +243,14 @@ const OrderDraft = z.object({
 type OrderDraft = z.infer<typeof OrderDraft>;
 ```
 
+Ref: Parse, don't validate
+(https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/); Zod,
+defining schemas (https://zod.dev/api) and inferring types
+(https://zod.dev/basics); Valibot (https://valibot.dev/); Fastify,
+validation and serialization
+(https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/).
+The untrusted-versus-controlled-source split is a house rule.
+
 ## Error handling
 
 - Per principles.md "Errors as values": return a discriminated `Result` union
@@ -241,7 +268,7 @@ type RepoError = { kind: "conflict" } | { kind: "storage"; cause: unknown };
 - `throw` is reserved for bugs and unrecoverable states; edge frameworks that
   communicate via exceptions get a translation layer at the adapter.
 - `catch (e)` binds `unknown` under strict settings — narrow before use;
-  NEVER access `e.message` unchecked, and never swallow: rethrow, translate
+  NEVER access `e.message` unchecked, and NEVER swallow: rethrow, translate
   into a `Result`, or handle.
 - An `async` call MUST be awaited, returned, or explicitly discarded (`void
   fireAndForget()`); a bare unawaited call silently drops its rejection.
@@ -249,7 +276,8 @@ type RepoError = { kind: "conflict" } | { kind: "storage"; cause: unknown };
 - Per principles.md "Errors as values" (translate at boundaries): adapters
   map driver/HTTP errors into the port's error union.
 
-Ref: typescriptlang.org/tsconfig (`useUnknownInCatchVariables`, part of `strict`).
+Ref: TSConfig Reference, `useUnknownInCatchVariables` (part of `strict`)
+(https://www.typescriptlang.org/tsconfig/#useUnknownInCatchVariables).
 
 ## Testing
 
@@ -261,6 +289,9 @@ Ref: typescriptlang.org/tsconfig (`useUnknownInCatchVariables`, part of `strict`
   produce the expected issues.
 - Type-level regressions: use `expect-type`-style assertions (or `satisfies`)
   for load-bearing inferred types.
+
+Ref: expect-type (https://github.com/mmkal/expect-type) supports the
+type-level assertion bullet only. The rest is house rule.
 
 ## Anti-patterns AI agents produce in TypeScript
 

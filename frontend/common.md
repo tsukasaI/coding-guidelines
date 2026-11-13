@@ -25,6 +25,8 @@ names the concrete mechanism. For lint/format/pre-commit setup, see
   testable without rendering. Components and framework primitives bind UI to
   it; they MUST NOT contain business rules.
 
+Ref: house rule (no external source).
+
 ## Derive, don't sync
 
 - Anything computable from props or other state MUST be derived, not stored.
@@ -37,6 +39,11 @@ names the concrete mechanism. For lint/format/pre-commit setup, see
 - Exception: a deliberately detached seed read once (an edit-form draft).
   Name the prop `initialX`/`defaultX` and reset the state with `key`, not an
   effect.
+
+Ref: You Might Not Need an Effect
+(https://react.dev/learn/you-might-not-need-an-effect); Svelte `$derived`
+(https://svelte.dev/docs/svelte/$derived); Solid memos
+(https://docs.solidjs.com/concepts/derived-values/memos).
 
 ## Data fetching
 
@@ -51,6 +58,12 @@ names the concrete mechanism. For lint/format/pre-commit setup, see
   framework guide). Sole exception: the single centralized custom hook that
   `frontend/react.md` allows in a tiny app with no other server-state needs.
 
+Ref: You Might Not Need an Effect, "Fetching data"
+(https://react.dev/learn/you-might-not-need-an-effect); SvelteKit loading
+data (https://svelte.dev/docs/kit/load); Solid `createResource`
+(https://docs.solidjs.com/reference/basic-reactivity/create-resource). The
+typed API port requirement is a house rule.
+
 ## Injection and global state
 
 - Framework context is the composition-root conduit: providers at the root
@@ -62,12 +75,23 @@ names the concrete mechanism. For lint/format/pre-commit setup, see
   draft or optimistic value that is meant to diverge until saved; keep it
   local and discard it on success.
 
+Ref: Passing Data Deeply with Context
+(https://react.dev/learn/passing-data-deeply-with-context); SvelteKit state
+management (https://svelte.dev/docs/kit/state-management); Solid context
+(https://docs.solidjs.com/concepts/context). Treating context as the
+composition-root conduit is a house rule.
+
 ## Testing
 
 - Test components through accessible output (Testing Library queries by
-  role/name), never through internals or implementation details.
+  role/name), NEVER through internals or implementation details.
 - Fake at the port or network seam (hand-written port fakes, MSW). NEVER mock
   internal components or the framework's own primitives.
+
+Ref: Testing Library guiding principles
+(https://testing-library.com/docs/guiding-principles); Testing Library query
+priority (https://testing-library.com/docs/queries/about#priority); Mock
+Service Worker philosophy (https://mswjs.io/docs/philosophy).
 
 ## Anti-patterns AI agents produce in frontend code
 

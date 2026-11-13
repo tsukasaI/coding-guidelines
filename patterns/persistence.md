@@ -15,9 +15,14 @@ truth; typed access code is generated from them (`patterns/codegen.md`).
 - Read models MAY bypass the domain: a report/list view gets its own small
   read port returning purpose-built DTOs. Do not reconstruct aggregates just
   to flatten them again.
-- Express query intent in the port (`OrdersWithLines(ctx, month)`), never
+- Express query intent in the port (`OrdersWithLines(ctx, month)`), NEVER
   lazy navigation from entities. N+1 is solved in the adapter with joins or
   batching, invisible to the consumer.
+
+Ref: Repository (https://martinfowler.com/eaaCatalog/repository.html); DDD
+Aggregate (https://martinfowler.com/bliki/DDD_Aggregate.html); CQRS
+(https://martinfowler.com/bliki/CQRS.html). The consumer-defined port and
+repository-per-aggregate-not-table rules are house rules.
 
 ## Transactions
 
@@ -25,8 +30,8 @@ truth; typed access code is generated from them (`patterns/codegen.md`).
   bans driver transaction types in port signatures). Two forms: one
   transactional method on a single port, or a `UnitOfWork` port owned by the
   application layer.
-- One use case = at most one transaction. Keep it short: no network calls,
-  no domain-event dispatch, no logging loops inside the transaction.
+- One use case = at most one transaction. Keep it short: NEVER make network
+  calls, dispatch domain events, or run logging loops inside the transaction.
 
 ```go
 // Good: the port exposes atomicity as intent; the adapter owns the driver tx
@@ -45,8 +50,11 @@ func (s *PgStore) PlaceOrder(ctx context.Context, o order.Order) error {
 ```
 
 - When several repositories must commit together, that is one aggregate
-  boundary drawn wrong or a `UnitOfWork` port — never a driver transaction
+  boundary drawn wrong or a `UnitOfWork` port, NEVER a driver transaction
   threaded through two ports.
+
+Ref: Unit of Work (https://martinfowler.com/eaaCatalog/unitOfWork.html). The
+port-level atomicity and one-transaction-per-use-case rules are house rules.
 
 ## Migrations
 
@@ -59,6 +67,11 @@ func (s *PgStore) PlaceOrder(ctx context.Context, o order.Order) error {
   dual-write, backfill, switch reads, then drop the old one — each step its
   own migration and deploy.
 
+Ref: Evolutionary Database Design (https://martinfowler.com/articles/evodb.html);
+Parallel Change, expand and contract
+(https://martinfowler.com/bliki/ParallelChange.html). The forward-only and
+never-edit-an-applied-migration rules are house rules.
+
 ## Tools
 
 | Language | Query layer | Migrations |
@@ -68,13 +81,17 @@ func (s *PgStore) PlaceOrder(ctx context.Context, o order.Order) error {
 | TypeScript | pgtyped (types generated from SQL queries); kysely as the typed query builder where queries must be composed dynamically | any versioned-SQL runner; keep files in `migrations/` |
 
 - All three follow the same rule: SQL is written by hand and checked against
-  the real schema; the typed access layer is generated, never hand-rolled
+  the real schema; the typed access layer is generated, NEVER hand-rolled
   string concatenation. Generated-code handling rules: `patterns/codegen.md`.
 
 - pgtyped's release activity: see "Tool status" in `patterns/tooling.md`
   before adopting it in a new project.
 
-Ref: docs.sqlc.dev; docs.rs/sqlx (offline mode, migrate); pgtyped.dev.
+Ref: sqlc (https://docs.sqlc.dev/en/latest/); sqlx offline mode
+(https://docs.rs/sqlx/latest/sqlx/macro.query.html) and `migrate!`
+(https://docs.rs/sqlx/latest/sqlx/macro.migrate.html); PgTyped
+(https://pgtyped.dev/); OWASP SQL Injection Prevention Cheat Sheet
+(https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html).
 
 ## Anti-patterns AI agents produce around persistence
 
@@ -85,7 +102,7 @@ Ref: docs.sqlc.dev; docs.rs/sqlx (offline mode, migrate); pgtyped.dev.
    parameters on port methods (see Transactions above and principles.md).
 3. **Repository-per-table with CRUD×N**: mechanical `GetX/SaveX/DeleteX` for
    every table. Ports exist per aggregate and per consumer need.
-4. **Hand-built SQL strings** with interpolated input — banned outright
+4. **Hand-built SQL strings** with interpolated input: NEVER do this
    (injection); parameterize, or better, use the generated query layer.
 5. **Editing an applied migration** to "fix" it. Applied migrations are
    history; write the next one.

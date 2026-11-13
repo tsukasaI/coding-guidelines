@@ -61,11 +61,16 @@ APIs, and MUST be recorded as an exception in the project's CLAUDE.md.
   Whether that parse also needs a runtime schema depends on the source:
   `languages/typescript.md` "Boundaries and validation".
 
-Ref: docs.sqlc.dev (diff/vet); github.com/oapi-codegen/oapi-codegen;
-openapi-ts.dev; docs.rs/sqlx (offline mode); pgtyped.dev;
-github.com/oxidecomputer/progenitor; github.com/stoplightio/spectral
-(README: single-document linting); github.com/oasdiff/oasdiff (`breaking`,
-`--fail-on`).
+Ref: sqlc in CI/CD, `sqlc diff`
+(https://docs.sqlc.dev/en/latest/howto/ci-cd.html) and `sqlc vet`
+(https://docs.sqlc.dev/en/latest/howto/vet.html); oapi-codegen
+(https://github.com/oapi-codegen/oapi-codegen); openapi-typescript
+(https://openapi-ts.dev/); sqlx offline mode
+(https://docs.rs/sqlx/latest/sqlx/macro.query.html); PgTyped
+(https://pgtyped.dev/); progenitor
+(https://github.com/oxidecomputer/progenitor); Spectral README, single-document
+linting (https://github.com/stoplightio/spectral); oasdiff, `breaking` and
+`--fail-on` (https://github.com/oasdiff/oasdiff).
 
 ## Anti-patterns AI agents produce around codegen
 

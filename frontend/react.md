@@ -9,8 +9,8 @@ TypeScript strict, function components only.
 - Components and hooks MUST be pure during render: same props/state → same
   JSX; no side effects, no mutation of props, state, or values returned by
   hooks.
-- Only React calls components: never invoke a component as a plain function,
-  never pass hooks around as values.
+- Only React calls components: NEVER invoke a component as a plain function,
+  NEVER pass hooks around as values.
 - Hooks are called at the top level only — not in loops, conditions, or
   nested functions.
 
@@ -18,7 +18,7 @@ Lint: React projects use `templates/oxlintrc.react.json.example` (adds the
 `react` oxlint plugin on top of the TypeScript base; `react-perf` is left
 off because the compiler makes its memoization demands moot).
 
-Ref: react.dev/reference/rules.
+Ref: Rules of React (https://react.dev/reference/rules).
 
 ## Component boundaries
 
@@ -36,12 +36,13 @@ Ref: react.dev/reference/rules.
   the client boundary as low in the tree as possible — data access stays on
   the server side of it.
 
-Ref: react.dev/reference/rsc/server-components; react.dev/learn/thinking-in-react.
+Ref: Server Components (https://react.dev/reference/rsc/server-components);
+Thinking in React (https://react.dev/learn/thinking-in-react).
 
 ## State management
 
 - Derive, don't sync (`frontend/common.md`): in React, compute the value
-  during render; `useEffect` + `setState` is the banned form.
+  during render; NEVER derive it with `useEffect` + `setState`.
 
 ```tsx
 // Bad: synced copy, one render behind, two sources of truth
@@ -78,15 +79,17 @@ useEffect(() => { setDraft(""); setError(null); }, [userId]);
   value must stay referentially stable (an Effect dependency, or a consumer
   outside the compiler that compares identity) or when profiling shows a
   hot path the compiler missed. Without it: memoize what you have measured.
-  Never strip existing memoization without measuring.
+  NEVER strip existing memoization without measuring.
 
-Ref: react.dev/learn/you-might-not-need-an-effect;
-react.dev/learn/choosing-the-state-structure;
-react.dev/learn/react-compiler/introduction; react.dev/blog (React Compiler 1.0).
+Ref: You Might Not Need an Effect
+(https://react.dev/learn/you-might-not-need-an-effect); Choosing the State
+Structure (https://react.dev/learn/choosing-the-state-structure); React
+Compiler introduction (https://react.dev/learn/react-compiler/introduction);
+React Compiler v1.0 (https://react.dev/blog/2025/10/07/react-compiler-1).
 
 ## Data fetching
 
-- No fetch-in-`useEffect` with loading/error `useState` triples
+- NEVER fetch in `useEffect` with loading/error `useState` triples
   (`frontend/common.md`); the official docs themselves list its downsides
   (races, refetch on every remount, no caching) and point to better options.
 - Order of preference: (1) the framework's server-side loading (Server
@@ -94,14 +97,15 @@ react.dev/learn/react-compiler/introduction; react.dev/blog (React Compiler 1.0)
   (TanStack Query or SWR) for client-side caching, deduplication, and
   revalidation; (3) only in a tiny dependency-free app (no framework loader,
   and a handful of read-only fetches with no mutations to invalidate), one
-  custom hook that centralizes cancellation and caching — never
+  custom hook that centralizes cancellation and caching, NEVER
   per-component effects. Needing a second hook of this kind means it is time
   for (2).
 - Mutations invalidate or update the relevant queries at the mutation site;
   do not sprinkle refetch calls through unrelated components.
 
-Ref: react.dev/learn/you-might-not-need-an-effect (fetching);
-react.dev/learn/synchronizing-with-effects.
+Ref: You Might Not Need an Effect, "Fetching data"
+(https://react.dev/learn/you-might-not-need-an-effect); Synchronizing with
+Effects (https://react.dev/learn/synchronizing-with-effects).
 
 ## Context and global state
 
@@ -113,15 +117,16 @@ react.dev/learn/synchronizing-with-effects.
   fast-changing values (form input, cursor, list filters) MUST NOT live in
   one. Before adding a store or context, try lifting state or passing
   `children`; most "prop drilling" pain is a composition problem.
-- Server data stays in the query library's cache, never in a global store
+- Server data stays in the query library's cache, NEVER in a global store
   (`frontend/common.md`).
 - A dedicated client-state store (e.g. Zustand) is a last resort for real
   cross-cutting client state (multi-panel editor state); it holds client
-  state only, never copies of server data. Such a store is UI state, not a
+  state only, NEVER copies of server data. Such a store is UI state, not a
   dependency: services and ports are still injected through context, which
   keeps principles.md's global-state ban intact.
 
-Ref: react.dev/learn/passing-data-deeply-with-context ("Before you use context").
+Ref: Passing Data Deeply with Context, "Before you use context"
+(https://react.dev/learn/passing-data-deeply-with-context).
 
 ## Error handling
 
@@ -131,18 +136,24 @@ Ref: react.dev/learn/passing-data-deeply-with-context ("Before you use context")
   crash degrades a panel, not the page. Event-handler and async errors are
   NOT caught by boundaries — handle them where they occur and set state.
 
-Ref: react.dev/reference/react/Component (error boundaries do not catch
-event-handler or async errors).
+Ref: Component, catching rendering errors with an error boundary (error
+boundaries do not catch event-handler or async errors)
+(https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
 
 ## Testing
 
 - Test components through their public API: render, interact, assert on the
-  accessible output (Testing Library queries by role/name) — never on
+  accessible output (Testing Library queries by role/name) and NEVER on
   internal state, hook order, or implementation details.
 - Domain logic extracted to plain TS is unit-tested without React; custom
   hooks with real logic get `renderHook` tests; components get behavior tests.
 - Fake at the port/network seam per `frontend/common.md`; snapshot tests only
   for genuinely static markup.
+
+Ref: Testing Library guiding principles
+(https://testing-library.com/docs/guiding-principles); React Testing Library
+`renderHook` (https://testing-library.com/docs/react-testing-library/api/#renderhook).
+The snapshot-test limit is a house rule.
 
 ## Anti-patterns AI agents produce in React
 

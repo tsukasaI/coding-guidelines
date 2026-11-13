@@ -17,9 +17,10 @@ Svelte 4 syntax — `export let`, `$:` reactive statements, store-first state,
 slots — MUST NOT be written in new components; it appears below only as "do
 not use". A component is runes or legacy as a whole (the two cannot be mixed
 in one file): in an existing legacy component keep its syntax for a small fix
-or migrate the whole file, never mix.
+or migrate the whole file, NEVER mix.
 
-Ref: svelte.dev/docs/svelte/legacy-overview.
+Ref: Svelte legacy APIs overview
+(https://svelte.dev/docs/svelte/legacy-overview).
 
 Lint gap: keep `eslint-plugin-svelte` running (`templates/eslint.svelte.config.example`;
 rationale in `patterns/tooling.md` "Framework gaps").
@@ -47,7 +48,9 @@ TS-API tools").
 - Use `$bindable` sparingly: two-way flow on many props makes data flow
   unpredictable (the docs' own warning). Default to value-down, callback-up.
 
-Ref: svelte.dev/docs/svelte/$props, /snippet, /$bindable.
+Ref: `$props` (https://svelte.dev/docs/svelte/$props); snippets
+(https://svelte.dev/docs/svelte/snippet); `$bindable`
+(https://svelte.dev/docs/svelte/$bindable).
 
 ## State management (runes)
 
@@ -75,8 +78,9 @@ Ref: svelte.dev/docs/svelte/$props, /snippet, /$bindable.
   measurement, third-party widgets, analytics); NEVER for logic that belongs
   in an event handler.
 
-Ref: svelte.dev/docs/svelte/$state, /$derived, /$effect ("When not to use
-$effect").
+Ref: `$state` (https://svelte.dev/docs/svelte/$state); `$derived`
+(https://svelte.dev/docs/svelte/$derived); `$effect`, "When not to use
+$effect" (https://svelte.dev/docs/svelte/$effect).
 
 ## Context and global state
 
@@ -99,10 +103,11 @@ export const session = $state({ user: null as User | null });
   Svelte's composition-root conduit (sanctioned by principles.md).
 - Context is scoped per component tree; module state is shared process-wide.
   On the server that means it leaks between requests — keep per-request data
-  in `load` results or context, never in module state.
+  in `load` results or context, NEVER in module state.
 - Server data stays in `load` results (`frontend/common.md`).
 
-Ref: svelte.dev/docs/svelte/stores; svelte.dev/docs/kit/state-management.
+Ref: Stores (https://svelte.dev/docs/svelte/stores); SvelteKit state
+management (https://svelte.dev/docs/kit/state-management).
 
 ## Data fetching
 
@@ -119,8 +124,10 @@ Ref: svelte.dev/docs/svelte/stores; svelte.dev/docs/kit/state-management.
 - Instead of fetching in `onMount`/`$effect`, use a `load` function; for
   component-local async, prefer `{#await}` blocks over manual state triples.
 
-Ref: svelte.dev/docs/kit/load; svelte.dev/docs/kit/form-actions;
-svelte.dev/docs/kit/remote-functions.
+Ref: Loading data (https://svelte.dev/docs/kit/load); Form actions
+(https://svelte.dev/docs/kit/form-actions); Remote functions
+(https://svelte.dev/docs/kit/remote-functions); Server-only modules
+(https://svelte.dev/docs/kit/server-only-modules).
 
 ## Error handling
 
@@ -133,6 +140,11 @@ svelte.dev/docs/kit/remote-functions.
 - `+error.svelte` per route section bounds blast radius, like an error
   boundary. Component code must not swallow errors silently.
 
+Ref: SvelteKit Errors, `error()` and `+error.svelte`
+(https://svelte.dev/docs/kit/errors); Form actions, `fail()`
+(https://svelte.dev/docs/kit/form-actions). Keeping expected failures as
+values inside app code is a house rule.
+
 ## Testing
 
 - Domain logic in plain TS modules is unit-tested without Svelte.
@@ -140,6 +152,10 @@ svelte.dev/docs/kit/remote-functions.
   and assert on accessible output (Testing Library), not on internals.
 - Fake at the port/network seam per `frontend/common.md`; `load` functions
   are plain functions — test them by calling them with fake events.
+
+Ref: Svelte Testing (https://svelte.dev/docs/svelte/testing); Testing Library
+guiding principles (https://testing-library.com/docs/guiding-principles).
+Calling `load` functions with fake events is a house rule.
 
 ## Anti-patterns AI agents produce in Svelte
 

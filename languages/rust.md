@@ -8,7 +8,7 @@ paths:
 
 Specializes `principles.md` for Rust. Baseline: current stable Rust, 2024
 edition (stabilized in 1.85). Design with ownership first: DDD patterns are
-adapted to the borrow checker, never translated from OO.
+adapted to the borrow checker, NEVER translated from OO.
 
 ## Project layout
 
@@ -37,8 +37,12 @@ adapted to the borrow checker, never translated from OO.
   name types unqualified (`HashMap`), except ambiguous ones (`io::Error`,
   `fmt::Result`).
 
-Ref: The Rust Book ch. 11.3 (test organization); Rust API Guidelines
-(future-proofing); Google Rust Style Guide (code organization).
+Ref: The Rust Book ch. 11.3, test organization
+(https://doc.rust-lang.org/book/ch11-03-test-organization.html); Rust API
+Guidelines, future proofing
+(https://rust-lang.github.io/api-guidelines/future-proofing.html); Google
+Rust Style Guide, code organization
+(https://google.github.io/styleguide/rustguide.html).
 
 ## Composition and dependency injection
 
@@ -76,7 +80,8 @@ fn main() -> anyhow::Result<()> {
 }
 ```
 
-Ref: The Rust Book ch. 18.2 (trait objects vs generics trade-offs).
+Ref: The Rust Book ch. 18.2, trait objects vs generics trade-offs
+(https://doc.rust-lang.org/book/ch18-02-trait-objects.html).
 
 ## Domain modelling
 
@@ -129,8 +134,12 @@ enum OrderState { Pending, Shipped { at: DateTime }, Cancelled { at: DateTime } 
   ownership only when the alternative is unreasonably complex. Cloning an
   `Rc`/`Arc` is expected; `.clone()` on anything else means a real deep copy.
 
-Ref: Rust API Guidelines C-NEWTYPE, C-VALIDATE, C-CTOR; Google Rust Style
-Guide (types, ownership and borrowing).
+Ref: Rust API Guidelines C-NEWTYPE
+(https://rust-lang.github.io/api-guidelines/type-safety.html), C-VALIDATE
+(https://rust-lang.github.io/api-guidelines/dependability.html), C-CTOR
+(https://rust-lang.github.io/api-guidelines/predictability.html); Google Rust
+Style Guide, types, ownership and borrowing
+(https://google.github.io/styleguide/rustguide.html).
 
 ## API design
 
@@ -185,7 +194,7 @@ Naming (beyond the Rust API Guidelines C-CASE):
   `self`). (enforced: `clippy::wrong_self_convention`.)
 - Constructors: `new()`, `new_with_foo()`, `try_new()` when it returns
   `Result`. Accessors: `foo()` / `foo_mut()` / `set_foo()` /
-  `take_foo()` / `replace_foo()`, never `get_foo()`. A type with `len()`
+  `take_foo()` / `replace_foo()`, NEVER `get_foo()`. A type with `len()`
   also has `is_empty()` (enforced: `clippy::len_without_is_empty`).
 - Lifetimes get descriptive names (`'conn`, `'src`); `'a`/`'b` only for up to
   two lifetimes in a small local scope, and `'_` where elision allows.
@@ -206,9 +215,12 @@ pub fn render<'src>(lines: &'src [String], mode: Mode)
 impl Order { pub fn total(&self) -> Cents { ... } }
 ```
 
-Ref: Rust API Guidelines C-CONV, C-GETTER, C-COMMON-TRAITS, C-STRUCT-PRIVATE;
-Google Rust Style Guide (function inputs and outputs, traits, naming, other
-Rust features).
+Ref: Rust API Guidelines C-CONV and C-GETTER
+(https://rust-lang.github.io/api-guidelines/naming.html), C-COMMON-TRAITS
+(https://rust-lang.github.io/api-guidelines/interoperability.html),
+C-STRUCT-PRIVATE (https://rust-lang.github.io/api-guidelines/future-proofing.html);
+Google Rust Style Guide, function inputs and outputs, traits, naming, other
+Rust features (https://google.github.io/styleguide/rustguide.html).
 
 ## Error handling
 
@@ -254,8 +266,12 @@ let order = repo
     .with_context(|| format!("loading order {id}"))?;
 ```
 
-Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
-"application" framing is the crates' own).
+Ref: The Rust Book ch. 9.2
+(https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html)
+and ch. 9.3
+(https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html);
+thiserror (https://docs.rs/thiserror) and anyhow (https://docs.rs/anyhow)
+docs ("library" vs "application" framing is the crates' own).
 
 ## Implementation
 
@@ -271,7 +287,7 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
 - Keep combinator chains short: about three adapters after the source; past
   that, or when a closure needs a block body, split the chain into named
   steps or use a `for` loop. Use a `for` loop when the body has side
-  effects or branches, never combinators in a `for` header, and avoid
+  effects or branches, NEVER combinators in a `for` header, and avoid
   `Iterator::for_each` (enforced: `clippy::needless_for_each`).
   Short reductions (`any`, `all`, `sum`, `map(..).collect()`) are fine.
 - Build strings with `format!`/`write!` when joining more than two pieces or
@@ -290,7 +306,7 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   the protected data may be mid-update. Propagate or panic instead.
 - NEVER run code before `main` (`ctor`-style life-before-main crates).
   Initialize explicitly from the composition root.
-- `unsafe` is forbidden by default (see Tooling). Under a documented
+- `unsafe` MUST NOT be used by default (see Tooling). Under a documented
   exception: use it only when no safe implementation exists (performance
   reasons need a benchmark), wrap it in a safe abstraction, isolate it in its
   own module or crate, and put a `// SAFETY:` comment on every `unsafe`
@@ -299,10 +315,10 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   their caller obligations under a `# Safety` heading.
 - Prefer, in order: plain Rust, `macro_rules!`, build-time code generation,
   procedural macros. Each step up costs tooling support and reviewability.
-- No unstable (`#![feature]`) features; this guide targets stable Rust.
+- NEVER use unstable (`#![feature]`) features; this guide targets stable Rust.
 
-Ref: Google Rust Style Guide (implementation concerns, concurrency, macros,
-other Rust features).
+Ref: Google Rust Style Guide, implementation concerns, concurrency, macros,
+other Rust features (https://google.github.io/styleguide/rustguide.html).
 
 ## Documentation
 
@@ -319,8 +335,10 @@ other Rust features).
   worse than `#[expect(missing_docs, reason = "...")]` on a self-evident item.
 - Prefer plain doc comments over macro-generated documentation.
 
-Ref: The rustdoc book (documentation tests); Google Rust Style Guide (when
-and how to write documentation).
+Ref: The rustdoc book, documentation tests
+(https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html);
+Google Rust Style Guide, when and how to write documentation
+(https://google.github.io/styleguide/rustguide.html).
 
 ## Testing
 
@@ -334,6 +352,11 @@ and how to write documentation).
 - Test error paths as first-class cases: `assert!(matches!(err, RepoError::NotFound))`.
 - Prefer plain `assert_eq!`/`matches!` over assertion-DSL crates; add
   property-based tests (proptest) for parsers and invariant-heavy types.
+
+Ref: The Rust Book ch. 11.3, test organization
+(https://doc.rust-lang.org/book/ch11-03-test-organization.html); The Proptest
+Book (https://proptest-rs.github.io/proptest/). The trait-seam and fake rules
+are house rules.
 
 ## Tooling
 
@@ -349,7 +372,7 @@ and how to write documentation).
   one-module-per-`use` rule above is code-review-only. Don't add project
   overrides beyond this set; canonical formatting is the point.
 - `#[rustfmt::skip]` only for deliberate manual alignment (tables,
-  matrices) or generated code, never for personal style.
+  matrices) or generated code, NEVER for personal style.
 - `clippy`'s default groups (`correctness`, `suspicious`, `complexity`,
   `perf`, `style`) are promoted to deny (`-D warnings`) in the pre-commit
   hook. Add a small, explicit, cherry-picked set of pedantic/nursery/
@@ -422,11 +445,14 @@ and how to write documentation).
 - No clippy lint exists for the `Rc<RefCell<T>>`-object-graph or
   crate-wide-mega-error-enum anti-patterns below; both stay code-review-only.
 
-Ref: doc.rust-lang.org/clippy (lint groups, `[lints]` table);
-rust-lang.github.io/rustfmt (option stability); rustsec.org;
-github.com/EmbarkStudios/cargo-deny; github.com/rust-lang/rust-clippy/issues/13981
-(clippy.toml test-scoping keys skip non-test helpers in tests/, and
-examples/, benches/).
+Ref: Clippy lints, lint groups (https://doc.rust-lang.org/clippy/lints.html);
+Cargo `[lints]` table
+(https://doc.rust-lang.org/cargo/reference/manifest.html#the-lints-section);
+rustfmt (https://rust-lang.github.io/rustfmt/) for option stability;
+RustSec (https://rustsec.org/); cargo-deny
+(https://github.com/EmbarkStudios/cargo-deny); rust-clippy issue 13981
+(https://github.com/rust-lang/rust-clippy/issues/13981; clippy.toml
+test-scoping keys skip non-test helpers in tests/, and examples/, benches/).
 
 ## Anti-patterns AI agents produce in Rust
 

@@ -16,16 +16,19 @@ for the project's stack.
   every contributor's machine) without a recorded exception in the
   project's CLAUDE.md.
 - `git commit --no-verify` and lefthook's own bypasses (`LEFTHOOK=0`, which
-  disables all hooks, and `LEFTHOOK_EXCLUDE`, which skips named ones) are
-  banned except as a documented emergency, and that exception is
+  disables all hooks, and `LEFTHOOK_EXCLUDE`, which skips named ones) MUST
+  NOT be used except as a documented emergency, and that exception is
   human-only: AI agents NEVER use it. When a human invokes it, the bypass
   and a follow-up ticket to fix the underlying finding are recorded in the
   commit message.
 - Every hook fails the commit on any warning, not only on errors — see
   "Maximal strictness stance" below.
 
-Ref: lefthook.dev (parallel execution, monorepo configuration);
-lefthook.dev/usage/envs/LEFTHOOK/ (`LEFTHOOK`, `LEFTHOOK_EXCLUDE`).
+Ref: Lefthook (https://lefthook.dev/), `parallel` configuration
+(https://lefthook.dev/configuration/parallel) and `root`
+(https://lefthook.dev/configuration/root/); the `LEFTHOOK` environment
+variable (https://lefthook.dev/usage/envs/LEFTHOOK/; `LEFTHOOK`,
+`LEFTHOOK_EXCLUDE`).
 
 ## Secret scanning (mandatory)
 
@@ -49,7 +52,8 @@ lefthook.dev/usage/envs/LEFTHOOK/ (`LEFTHOOK`, `LEFTHOOK_EXCLUDE`).
   Betterleaks (see "Tool status"). Revisit periodically; drop-in
   compatibility means switching later costs little.
 
-Ref: github.com/gitleaks/gitleaks (CLI subcommands, config schema).
+Ref: gitleaks (https://github.com/gitleaks/gitleaks; CLI subcommands, config
+schema).
 
 ## Lint and format by language
 
@@ -179,7 +183,7 @@ sets only the parser), so a TS 6.x project that wants them adds a
 
 1. **Reaching for `--no-verify`/`LEFTHOOK=0`/`LEFTHOOK_EXCLUDE`** the moment a hook fails, instead
    of fixing the finding. The bypass is a human-only emergency exception
-   with a recorded follow-up; an agent never uses it, and "the linter is
+   with a recorded follow-up; an agent NEVER uses it, and "the linter is
    being annoying" is not an emergency.
 2. **Blanket-enabling `clippy::pedantic`/`clippy::nursery`** (or an
    equivalent "turn everything on" lint group) instead of cherry-picking —
@@ -193,7 +197,7 @@ sets only the parser), so a TS 6.x project that wants them adds a
    rules would demand manual memoization the React Compiler makes unnecessary.
 3. **Allowlisting a real leaked secret** in `.gitleaks.toml` instead of
    rotating the credential. An allowlist entry is for known non-secrets,
-   never for "this one is fine because it's already committed."
+   NEVER for "this one is fine because it's already committed."
 4. **Unpinned lint-tool versions**: CI (or a teammate's machine) resolves a
    newer linter release mid-project and the diff fills with unrelated
    reformatting/rule-drift noise. Pin, and upgrade as a deliberate change —
@@ -203,6 +207,11 @@ sets only the parser), so a TS 6.x project that wants them adds a
    `patterns/codegen.md`'s "mark generated, exclude from lint" rule instead
    of adding per-file suppressions.
 
-Ref: golangci-lint.run (v2 configuration model); doc.rust-lang.org/clippy
-(lint groups); rustsec.org; github.com/EmbarkStudios/cargo-deny; oxc.rs
-(oxlint/oxfmt docs, compatibility, config reference); biomejs.dev.
+Ref: golangci-lint configuration, v2 configuration model
+(https://golangci-lint.run/docs/configuration/); Clippy lints, lint groups
+(https://doc.rust-lang.org/clippy/lints.html); RustSec
+(https://rustsec.org/); cargo-deny
+(https://github.com/EmbarkStudios/cargo-deny); Oxlint
+(https://oxc.rs/docs/guide/usage/linter), Oxfmt
+(https://oxc.rs/docs/guide/usage/formatter) and compatibility
+(https://oxc.rs/compatibility); Biome (https://biomejs.dev/).
