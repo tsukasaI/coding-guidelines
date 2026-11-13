@@ -122,7 +122,9 @@ enum OrderState { Pending, Shipped { at: DateTime }, Cancelled { at: DateTime } 
 
 - Use a newtype, not a `type` alias, whenever the name carries meaning the
   compiler should enforce. Prefer named fields over tuple structs and
-  tuples, except single-field newtypes and very local values.
+  tuples, except single-field newtypes and very local values (a tuple
+  that is used within one block of about ten lines and is never returned,
+  stored, or passed to another function).
 - Prefer unique ownership and borrowing over `Rc`/`Arc`; reach for shared
   ownership only when the alternative is unreasonably complex. Cloning an
   `Rc`/`Arc` is expected; `.clone()` on anything else means a real deep copy.
@@ -266,7 +268,9 @@ Ref: The Rust Book ch. 9.2–9.3; thiserror/anyhow docs ("library" vs
   `clippy::unnecessary_unwrap`.)
 - Give `assert!`/`assert_eq!` a message that says why the condition must
   hold, with the values involved, not a restatement of the condition.
-- Keep combinator chains short. Use a `for` loop when the body has side
+- Keep combinator chains short: about three adapters after the source; past
+  that, or when a closure needs a block body, split the chain into named
+  steps or use a `for` loop. Use a `for` loop when the body has side
   effects or branches, never combinators in a `for` header, and avoid
   `Iterator::for_each` (enforced: `clippy::needless_for_each`).
   Short reductions (`any`, `all`, `sum`, `map(..).collect()`) are fine.
@@ -336,9 +340,8 @@ and how to write documentation).
 - `rustfmt` runs with the Google Rust Style Guide's settings
   (`templates/rustfmt.toml.example`) and nothing else: `max_width = 100`
   (already rustfmt's default, so not written) and `hex_literal_case =
-  "Lower"`. Its upstream changelog stabilizes it in rustfmt 1.10.0, but the
-  rustfmt 1.10.0 bundled with rustc 1.99.0 still rejects it as nightly-only
-  and warns on every run, so the version number alone does not settle it:
+  "Lower"`. Upstream marks it stable, but stable rustfmt has been observed
+  warning that it is nightly-only (`patterns/tooling.md` "Tool status"), so
   run `cargo fmt --check` once and omit `rustfmt.toml` while the stable
   toolchain warns. Google's other two, `format_macro_matchers = true` and
   `imports_granularity = "Module"`, are nightly-only and stay commented out:
@@ -375,7 +378,9 @@ and how to write documentation).
   (`v[i]` panics on out-of-bounds; prefer `.get()`), and
   `allow_attributes`/`allow_attributes_without_reason` (forces
   `#[expect(lint, reason = "...")]` over a bare `#[allow(lint)]`, so every
-  suppression carries a reason that can be reviewed or expired).
+  suppression carries a reason that can be reviewed or expired), and
+  `clone_on_ref_ptr` (restriction; write `Arc::clone(&x)` so shared-pointer
+  clones read differently from deep copies).
   `[lints.rust] unsafe_code = "forbid"` is also mandatory unless the
   project has a documented, narrowly-scoped exception: `forbid` cannot be
   locally overridden by `#[allow(unsafe_code)]` (that's the point), so a
@@ -383,9 +388,7 @@ and how to write documentation).
 - Lints added for the Google Rust Style Guide rules: `[lints.rust]
   missing_docs`; `missing_panics_doc`, `fn_params_excessive_bools` (bool
   flags), `ref_option` (`&Option<T>` params), `needless_for_each` (all
-  pedantic); `clone_on_ref_ptr` (write `Arc::clone(&x)` so shared-pointer
-  clones read differently from deep copies), `string_add`,
-  `undocumented_unsafe_blocks` (only live under the `unsafe_code`
+  pedantic); `string_add`, `undocumented_unsafe_blocks` (only live under the `unsafe_code`
   exception) (all restriction); and `disallowed-methods` for
   `std::panic::catch_unwind` in `templates/clippy.toml.example`. Several
   Google rules are already covered by the default groups: `ptr_arg`,
