@@ -391,7 +391,7 @@ are house rules.
   slower than a local hook should be — they MAY run in CI rather than the
   mandatory pre-commit hook, unlike rustfmt/clippy which are
   pre-commit-mandatory. A project without CI MUST run both from a lefthook
-  `pre-push` job (`templates/lefthook.yml.example`, `patterns/tooling.md`).
+  `pre-push` job (`templates/lefthook.yaml.example`, `patterns/tooling.md`).
 - The current cherry-pick set (`templates/cargo-lints.toml.example`) adds:
   `module_name_repetitions` (module-name stutter, mirrors go.md's
   `revive.exported`), `print_stdout`/`print_stderr` (library and

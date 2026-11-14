@@ -71,7 +71,7 @@ strip_comments() {
   perl -pe '$_ .= "\n" if eof && !/\n\z/; s{^\s*(?:\#|//).*$}{}; s{(?<=\s)(?:\#|//).*$}{}' "$@"
 }
 TEMPLATES=$(strip_comments "${TEMPLATE_FILES[@]}")
-LEFTHOOK_TEMPLATE=$(strip_comments templates/lefthook.yml.example)
+LEFTHOOK_TEMPLATE=$(strip_comments templates/lefthook.yaml.example)
 
 in_templates() { grep -qE -- "$1" <<<"$TEMPLATES"; }
 

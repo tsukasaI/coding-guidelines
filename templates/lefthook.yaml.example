@@ -1,4 +1,4 @@
-# Copy to `lefthook.yml` at the project root, then run `lefthook install`.
+# Copy to `lefthook.yaml` at the project root, then run `lefthook install`.
 # Per patterns/tooling.md: lefthook is the mandated pre-commit orchestrator;
 # every job here is a zero-warnings gate (a warning fails the commit).
 #
@@ -19,7 +19,7 @@ pre-commit:
 
     - name: go
       # piped: go-format finishes before go-lint reads the files. gofumpt is
-      # also a golangci-lint formatter (templates/golangci.yml.example), so in
+      # also a golangci-lint formatter (templates/golangci.yaml.example), so in
       # parallel the linter could fail on a file the formatter is fixing.
       glob: "*.go"
       group:
@@ -37,7 +37,7 @@ pre-commit:
             # files from several packages fail ("named files must all be in
             # one directory"). --new-from-rev HEAD reports only issues in the
             # change being committed.
-            run: golangci-lint run --config .golangci.yml --new-from-rev HEAD
+            run: golangci-lint run --config .golangci.yaml --new-from-rev HEAD
     - name: go-layout-ban
       # go.md "NEVER create a pkg/ directory" — depguard bans import paths,
       # not directory names, so this is a plain glob-triggered shell job.

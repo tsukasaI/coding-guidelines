@@ -45,7 +45,7 @@ APIs, and MUST be recorded as an exception in the project's CLAUDE.md.
   (`sqlc diff`; for others: run the generator, then `git diff --exit-code`).
   Why: reviewers see the real consequence of a schema change, and builds
   don't depend on generator availability. Without CI, the same check MUST
-  run as a lefthook `pre-push` job (`templates/lefthook.yml.example`).
+  run as a lefthook `pre-push` job (`templates/lefthook.yaml.example`).
 - NEVER hand-edit generated files. Customization goes through generator
   config, type-mapping options, or OpenAPI overlays. A hand edit survives
   exactly one regeneration.

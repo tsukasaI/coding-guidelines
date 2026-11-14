@@ -83,11 +83,11 @@ reviewable diffs instead of silently changing agent behavior.
 ## Bootstrapping tooling (any variant)
 
 Per `patterns/tooling.md`, lint/format/pre-commit is mandatory: copy
-`templates/lefthook.yml.example` → `lefthook.yml` and
+`templates/lefthook.yaml.example` → `lefthook.yaml` and
 `templates/gitleaks.toml.example` → `.gitleaks.toml` at the project root,
 then run `lefthook install`. Also copy or paste (per each template's own
 header) the config template(s) for the project's stack:
-`golangci.yml.example`; `cargo-lints.toml.example` + `clippy.toml.example` +
+`golangci.yaml.example`; `cargo-lints.toml.example` + `clippy.toml.example` +
 `rustfmt.toml.example` + `deny.toml.example`; `oxlintrc.json.example` + `oxfmtrc.json.example` +
 `tsconfig.json.example`, plus `oxlintrc.react.json.example` for React, or
 `eslint.svelte.config.example` / `eslint.solid.config.example` for

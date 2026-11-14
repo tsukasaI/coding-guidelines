@@ -1,4 +1,4 @@
-# Copy to `.golangci.yml` at the project root.
+# Copy to `.golangci.yaml` at the project root.
 # Per languages/go.md's Tooling section: v2 schema, explicit enable list —
 # NOT `linters.default: all` with disables.
 
