@@ -100,15 +100,15 @@ patterns/codegen.md      schema-first code generation (OpenAPI, SQL)
 patterns/tooling.md      lint/format tool choice and status, mandatory pre-commit + gitleaks
 templates/CLAUDE.md.example  how a project references this repo
 scripts/check-enforced-tags.sh  checks (enforced: ...) tags name real template rules
-templates/golangci.yml.example   Go lint config
+templates/golangci.yaml.example  Go lint config
 templates/cargo-lints.toml.example, clippy.toml.example, rustfmt.toml.example, deny.toml.example
                          Rust lint, format and dependency config
 templates/oxlintrc.json.example, oxlintrc.react.json.example, oxfmtrc.json.example, tsconfig.json.example
                          TypeScript / React lint, format and compiler config
 templates/eslint.svelte.config.example, eslint.solid.config.example
                          ESLint fallback for Svelte / Solid template linting
-templates/lefthook.yml.example  pre-commit hooks for a project
+templates/lefthook.yaml.example pre-commit hooks for a project
 templates/gitleaks.toml.example secret-scanning config for a project
-lefthook.yml             this repo's own pre-commit hooks
+lefthook.yaml            this repo's own pre-commit hooks
 .gitleaks.toml           this repo's own gitleaks config
 ```

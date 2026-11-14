@@ -8,7 +8,7 @@ for the project's stack.
 
 - `lefthook` is the mandated pre-commit orchestrator: a Go binary, no Node
   dependency, parallel job execution, and native glob/path scoping for
-  polyglot and monorepo layouts. One `lefthook.yml` at the repo root defines
+  polyglot and monorepo layouts. One `lefthook.yaml` at the repo root defines
   every hook.
 - `lefthook` MUST NOT be replaced by `husky`+`lint-staged` (Node-only,
   sequential execution, awkward in polyglot repos) or the Python
@@ -116,7 +116,7 @@ Type-aware oxlint (`oxlint --type-aware`, via tsgolint) requires TS 7.0+
 (https://oxc.rs/docs/guide/usage/linter/type-aware.html), so a TS 6.x project
 cannot rely on it. There, type errors come from `tsc --noEmit` or
 `svelte-check` (a separate lefthook job, see
-`templates/lefthook.yml.example`), and type-aware lint rules such as
+`templates/lefthook.yaml.example`), and type-aware lint rules such as
 `no-floating-promises` must come from `typescript-eslint` in the project's
 ESLint config. The Svelte and Solid ESLint templates do not yet enable such
 rules (Svelte extends `ts.configs.recommended` with `projectService`; Solid
@@ -138,7 +138,7 @@ sets only the parser), so a TS 6.x project that wants them adds a
   has no linter equivalent, existing linters check import paths and
   identifiers, not directory names. Enforce these with a plain glob-scoped
   lefthook job that always fails when a matching path is staged, see the
-  `*-layout-ban` jobs in `templates/lefthook.yml.example`.
+  `*-layout-ban` jobs in `templates/lefthook.yaml.example`.
 
 ## Maximal strictness stance
 
@@ -153,7 +153,7 @@ sets only the parser), so a TS 6.x project that wants them adds a
   lint in `patterns/codegen.md`, `cargo deny` / `cargo audit` in
   `languages/rust.md`) are too slow or tool-heavy for pre-commit, not
   optional. A project without CI MUST run them from a lefthook `pre-push`
-  job instead (commented examples in `templates/lefthook.yml.example`).
+  job instead (commented examples in `templates/lefthook.yaml.example`).
 - Deliberate exceptions to the zero-warnings gate, both by decision:
   - `gofumpt` auto-fixes (`-w` + `stage_fixed`) instead of failing: its
     rewrite is deterministic and semantics-free, so auto-fixing loses

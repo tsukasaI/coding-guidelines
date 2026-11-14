@@ -93,7 +93,7 @@ stylistic-type-checked (https://typescript-eslint.io/users/configs); Biome
 - Group by domain feature (`src/order/`, `src/billing/`), not by kind
   (`src/types/`, `src/interfaces/`, `src/utils/`). Types live next to the
   functions that use them. (enforced: `ts-layout-ban` job in
-  `templates/lefthook.yml.example`)
+  `templates/lefthook.yaml.example`)
 - Each feature exposes a deliberate public surface via its top module; deep
   imports into another feature's internals MUST NOT be used. (enforced,
   partial: `eslint/no-restricted-imports` can only match a path pattern, it

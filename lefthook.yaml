@@ -1,6 +1,6 @@
 # This repo is markdown/config only today — no Go/Rust/TS source to lint —
 # so only the mandatory gitleaks job and the enforced-tag consistency check
-# are wired up here. See templates/lefthook.yml.example for the full
+# are wired up here. See templates/lefthook.yaml.example for the full
 # per-language job set a consuming project should add once it has source in
 # that language.
 

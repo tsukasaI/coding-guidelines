@@ -19,7 +19,7 @@ Specializes `principles.md` for Go. Baseline: current stable Go, modules only.
 - NEVER create a `pkg/` directory. It is not part of the official layout and
   adds a meaningless path segment. (enforced: `go-layout-ban` lefthook job on
   the `pkg/**` glob; `depguard` bans import paths, not directory names, so it
-  cannot catch this. See `templates/lefthook.yml.example`.)
+  cannot catch this. See `templates/lefthook.yaml.example`.)
 - Package names MUST be short, lower-case, singular nouns (`order`, not
   `orders`, `orderutils`, `common`, `helpers`). Name packages after what they
   provide, not what they contain.
@@ -179,7 +179,7 @@ type OrderState interface{ OrderState() }
 - Domain packages MUST NOT import `net/http`, `database/sql`, or any driver;
   adapters convert between wire/storage representations and domain types.
   (enforced: `depguard`; the `files:` glob in
-  `templates/golangci.yml.example` is a starting point that must be
+  `templates/golangci.yaml.example` is a starting point that must be
   customized to this project's real adapter/transport package names,
   depguard scopes by path pattern, not by architectural role)
 
@@ -306,7 +306,7 @@ Ref: Google Go Style Guide, best practices, test doubles
   on every golangci-lint upgrade. `gofumpt` is a *formatter* in v2
   (`formatters.enable`), not a linter, it cannot appear in `linters.enable`.
   The full current list, including the architectural-rule linters below, is
-  `templates/golangci.yml.example`.
+  `templates/golangci.yaml.example`.
 - v2 merged `gosimple` and `stylecheck` into `staticcheck`; do not enable
   them separately. `staticcheck` does NOT default to its full check set,
   `settings.staticcheck.checks: ["all"]` must be explicit.
