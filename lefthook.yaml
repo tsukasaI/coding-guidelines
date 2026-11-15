@@ -9,7 +9,7 @@ pre-commit:
   parallel: true
   commands:
     gitleaks:
-      run: gitleaks git --staged --redact
+      run: gitleaks git --staged --redact --config "$HOME/.config/gitleaks/gitleaks.toml" --ignore-gitleaks-allow
     enforced-tags:
       # every rule/job named in an (enforced: ...) tag must exist in a template
       glob: "{*.md,**/*.md,templates/*,scripts/*.sh}"
